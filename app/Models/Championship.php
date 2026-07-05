@@ -14,10 +14,11 @@ use Illuminate\Support\Carbon;
  * @property string $type
  * @property int|null $champion_superstar_id
  * @property int|null $champion_team_id
+ * @property int|null $user_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'show_id', 'type', 'champion_superstar_id', 'champion_team_id'])]
+#[Fillable(['name', 'show_id', 'type', 'champion_superstar_id', 'champion_team_id', 'user_id'])]
 class Championship extends Model
 {
     /**

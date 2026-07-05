@@ -15,13 +15,17 @@ class DashboardController extends Controller
 {
     public function index(): Response
     {
+        $userId = auth()->id();
+
         return Inertia::render('Dashboard', [
-            'shows' => Show::all(),
-            'superstars' => Superstar::with('show')->get(),
-            'teams' => Team::with('superstars')->get(),
-            'championships' => Championship::with(['show', 'championSuperstar', 'championTeam'])->get(),
-            'storylines' => Storyline::with('events')->get(),
-            'history' => ShowLog::with([
+            'shows' => Show::where('user_id', $userId)->get(),
+            'superstars' => Superstar::where('user_id', $userId)->with('show')->get(),
+            'teams' => Team::where('user_id', $userId)->with('superstars')->get(),
+            'championships' => Championship::where('user_id', $userId)->with(['show', 'championSuperstar', 'championTeam'])->get(),
+            'storylines' => Storyline::where('user_id', $userId)->with('events')->get(),
+            'history' => ShowLog::whereHas('show', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })->with([
                 'show',
                 'matches.c1Superstar',
                 'matches.c2Superstar',

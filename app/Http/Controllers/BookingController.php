@@ -12,13 +12,17 @@ use App\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class BookingController extends Controller
 {
     public function __invoke(Request $request): RedirectResponse
     {
         $request->validate([
-            'show_id' => 'required|exists:shows,id',
+            'show_id' => [
+                'required',
+                Rule::exists('shows', 'id')->where('user_id', auth()->id()),
+            ],
             'date' => 'required|date',
             'matches' => 'required|array',
             'matches.*.division' => 'required|string|in:Singles,TagTeam',
@@ -35,8 +39,8 @@ class BookingController extends Controller
         $date = $request->input('date');
         $matchesData = $request->input('matches');
         $show = Show::findOrFail($showId);
-        if (! $show instanceof Show) {
-            abort(404);
+        if (! $show instanceof Show || $show->user_id !== auth()->id()) {
+            abort(403);
         }
 
         DB::transaction(function () use ($show, $date, $matchesData) {
@@ -74,8 +78,8 @@ class BookingController extends Controller
                     $matchLogData['c1_superstar_id'] = (int) $c1Id;
                     $matchLogData['c2_superstar_id'] = (int) $c2Id;
 
-                    $s1 = Superstar::findOrFail($c1Id);
-                    $s2 = Superstar::findOrFail($c2Id);
+                    $s1 = Superstar::where('id', $c1Id)->where('user_id', auth()->id())->first();
+                    $s2 = Superstar::where('id', $c2Id)->where('user_id', auth()->id())->first();
                     if (! $s1 instanceof Superstar || ! $s2 instanceof Superstar) {
                         continue;
                     }
@@ -84,7 +88,7 @@ class BookingController extends Controller
 
                     if ($outcome === 'Decisive') {
                         $matchLogData['winner_superstar_id'] = (int) $winningId;
-                        $winner = Superstar::findOrFail($winningId);
+                        $winner = Superstar::where('id', $winningId)->where('user_id', auth()->id())->first();
                         if (! $winner instanceof Superstar) {
                             continue;
                         }
@@ -93,7 +97,7 @@ class BookingController extends Controller
                         // Increment wins/losses
                         $winner->increment('wins');
                         $loserId = ((int) $winningId === (int) $c1Id) ? $c2Id : $c1Id;
-                        $loser = Superstar::findOrFail($loserId);
+                        $loser = Superstar::where('id', $loserId)->where('user_id', auth()->id())->first();
                         if ($loser instanceof Superstar) {
                             $loser->increment('losses');
                         }
@@ -106,8 +110,8 @@ class BookingController extends Controller
                     $matchLogData['c1_team_id'] = (int) $c1Id;
                     $matchLogData['c2_team_id'] = (int) $c2Id;
 
-                    $t1 = Team::findOrFail($c1Id);
-                    $t2 = Team::findOrFail($c2Id);
+                    $t1 = Team::where('id', $c1Id)->where('user_id', auth()->id())->first();
+                    $t2 = Team::where('id', $c2Id)->where('user_id', auth()->id())->first();
                     if (! $t1 instanceof Team || ! $t2 instanceof Team) {
                         continue;
                     }
@@ -116,7 +120,7 @@ class BookingController extends Controller
 
                     if ($outcome === 'Decisive') {
                         $matchLogData['winner_team_id'] = (int) $winningId;
-                        $winner = Team::findOrFail($winningId);
+                        $winner = Team::where('id', $winningId)->where('user_id', auth()->id())->first();
                         if (! $winner instanceof Team) {
                             continue;
                         }
@@ -125,7 +129,7 @@ class BookingController extends Controller
                         // Increment wins/losses
                         $winner->increment('wins');
                         $loserId = ((int) $winningId === (int) $c1Id) ? $c2Id : $c1Id;
-                        $loser = Team::findOrFail($loserId);
+                        $loser = Team::where('id', $loserId)->where('user_id', auth()->id())->first();
                         if ($loser instanceof Team) {
                             $loser->increment('losses');
                         }
@@ -138,7 +142,7 @@ class BookingController extends Controller
 
                 // 3. Create Storyline Event if linked
                 if ($storylineId && $storylineId !== 'NONE') {
-                    $storyline = Storyline::findOrFail($storylineId);
+                    $storyline = Storyline::where('id', $storylineId)->where('user_id', auth()->id())->first();
                     if (! $storyline instanceof Storyline) {
                         continue;
                     }

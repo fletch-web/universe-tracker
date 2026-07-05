@@ -12,10 +12,11 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property string $color
  * @property string|null $image
+ * @property int|null $user_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'color', 'image'])]
+#[Fillable(['name', 'color', 'image', 'user_id'])]
 class Show extends Model
 {
     /**

@@ -7,6 +7,7 @@ use App\Models\Superstar;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class SuperstarController extends Controller
 {
@@ -15,10 +16,14 @@ class SuperstarController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'gender' => 'required|string|in:Male,Female',
-            'show_id' => 'required|exists:shows,id',
+            'show_id' => [
+                'required',
+                Rule::exists('shows', 'id')->where('user_id', auth()->id()),
+            ],
             'image' => 'nullable|string',
         ]);
 
+        $validated['user_id'] = auth()->id();
         Superstar::create($validated);
 
         return back()->with('toast', 'Competitor registered successfully!');
@@ -26,10 +31,17 @@ class SuperstarController extends Controller
 
     public function update(Request $request, Superstar $superstar): RedirectResponse
     {
+        if ($superstar->user_id !== auth()->id()) {
+            abort(403);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'gender' => 'required|string|in:Male,Female',
-            'show_id' => 'required|exists:shows,id',
+            'show_id' => [
+                'required',
+                Rule::exists('shows', 'id')->where('user_id', auth()->id()),
+            ],
             'wins' => 'required|integer|min:0',
             'losses' => 'required|integer|min:0',
             'draws' => 'required|integer|min:0',
@@ -43,6 +55,10 @@ class SuperstarController extends Controller
 
     public function destroy(Superstar $superstar): RedirectResponse
     {
+        if ($superstar->user_id !== auth()->id()) {
+            abort(403);
+        }
+
         $superstar->delete();
 
         return back()->with('toast', 'Competitor expunged successfully!');
@@ -63,12 +79,13 @@ class SuperstarController extends Controller
             return back()->with('toast', 'No data to import.');
         }
 
-        $shows = Show::all();
+        $userId = auth()->id();
+        $shows = Show::where('user_id', $userId)->get();
         if ($shows->isEmpty()) {
             return back()->with('toast', 'Configure at least one show before importing roster.');
         }
 
-        DB::transaction(function () use ($superstarsData, $shows) {
+        DB::transaction(function () use ($superstarsData, $shows, $userId) {
             foreach ($superstarsData as $data) {
                 $gender = trim($data['gender'] ?? 'Male');
                 if (! in_array($gender, ['Male', 'Female'])) {
@@ -91,6 +108,7 @@ class SuperstarController extends Controller
                     'wins' => 0,
                     'losses' => 0,
                     'draws' => 0,
+                    'user_id' => $userId,
                 ]);
             }
         });

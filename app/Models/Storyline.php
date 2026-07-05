@@ -10,10 +10,11 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property string $name
+ * @property int|null $user_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name'])]
+#[Fillable(['name', 'user_id'])]
 class Storyline extends Model
 {
     /**

@@ -13,10 +13,11 @@ use Illuminate\Support\Carbon;
  * @property int $wins
  * @property int $losses
  * @property int $draws
+ * @property int|null $user_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'wins', 'losses', 'draws'])]
+#[Fillable(['name', 'wins', 'losses', 'draws', 'user_id'])]
 class Team extends Model
 {
     /**

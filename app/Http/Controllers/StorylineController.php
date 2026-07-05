@@ -14,6 +14,7 @@ class StorylineController extends Controller
             'name' => 'required|string|max:255',
         ]);
 
+        $validated['user_id'] = auth()->id();
         Storyline::create($validated);
 
         return back()->with('toast', 'Storyline narrative arc initiated!');

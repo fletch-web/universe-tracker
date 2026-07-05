@@ -17,10 +17,11 @@ use Illuminate\Support\Carbon;
  * @property int $losses
  * @property int $draws
  * @property string|null $image
+ * @property int|null $user_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'gender', 'show_id', 'wins', 'losses', 'draws', 'image'])]
+#[Fillable(['name', 'gender', 'show_id', 'wins', 'losses', 'draws', 'image', 'user_id'])]
 class Superstar extends Model
 {
     /**

@@ -32,6 +32,7 @@ it('allows authenticated users to CRUD a show', function () {
     assertDatabaseHas('shows', [
         'name' => 'SmackDown',
         'color' => '#0055ff',
+        'user_id' => $this->user->id,
     ]);
 
     $show = Show::first();
@@ -59,7 +60,7 @@ it('allows authenticated users to CRUD a show', function () {
 });
 
 it('allows authenticated users to CRUD a superstar', function () {
-    $show = Show::create(['name' => 'Raw', 'color' => '#ff0000']);
+    $show = Show::create(['name' => 'Raw', 'color' => '#ff0000', 'user_id' => $this->user->id]);
 
     actingAs($this->user)
         ->post(route('superstars.store'), [
@@ -74,6 +75,7 @@ it('allows authenticated users to CRUD a superstar', function () {
         'name' => 'John Cena',
         'gender' => 'Male',
         'show_id' => $show->id,
+        'user_id' => $this->user->id,
     ]);
 
     $superstar = Superstar::first();
@@ -107,7 +109,7 @@ it('allows authenticated users to CRUD a superstar', function () {
 });
 
 it('allows authenticated users to import superstars in batch', function () {
-    $show = Show::create(['name' => 'Raw', 'color' => '#ff0000']);
+    $show = Show::create(['name' => 'Raw', 'color' => '#ff0000', 'user_id' => $this->user->id]);
 
     actingAs($this->user)
         ->post(route('superstars.import'), [
@@ -121,18 +123,20 @@ it('allows authenticated users to import superstars in batch', function () {
     assertDatabaseHas('superstars', [
         'name' => 'Triple H',
         'show_id' => $show->id,
+        'user_id' => $this->user->id,
     ]);
 
     assertDatabaseHas('superstars', [
         'name' => 'Rhea Ripley',
         'show_id' => $show->id,
+        'user_id' => $this->user->id,
     ]);
 });
 
 it('allows authenticated users to CRUD teams', function () {
-    $show = Show::create(['name' => 'NXT', 'color' => '#ffaa00']);
-    $s1 = Superstar::create(['name' => 'Shawn Michaels', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0]);
-    $s2 = Superstar::create(['name' => 'Triple H', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0]);
+    $show = Show::create(['name' => 'NXT', 'color' => '#ffaa00', 'user_id' => $this->user->id]);
+    $s1 = Superstar::create(['name' => 'Shawn Michaels', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0, 'user_id' => $this->user->id]);
+    $s2 = Superstar::create(['name' => 'Triple H', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0, 'user_id' => $this->user->id]);
 
     actingAs($this->user)
         ->post(route('teams.store'), [
@@ -143,6 +147,7 @@ it('allows authenticated users to CRUD teams', function () {
 
     assertDatabaseHas('teams', [
         'name' => 'D-Generation X',
+        'user_id' => $this->user->id,
     ]);
 
     $team = Team::first();
@@ -162,8 +167,8 @@ it('allows authenticated users to CRUD teams', function () {
 });
 
 it('allows authenticated users to CRUD championships', function () {
-    $show = Show::create(['name' => 'SmackDown', 'color' => '#0055ff']);
-    $superstar = Superstar::create(['name' => 'Roman Reigns', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0]);
+    $show = Show::create(['name' => 'SmackDown', 'color' => '#0055ff', 'user_id' => $this->user->id]);
+    $superstar = Superstar::create(['name' => 'Roman Reigns', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0, 'user_id' => $this->user->id]);
 
     actingAs($this->user)
         ->post(route('championships.store'), [
@@ -178,6 +183,7 @@ it('allows authenticated users to CRUD championships', function () {
         'name' => 'WWE Championship',
         'champion_superstar_id' => $superstar->id,
         'champion_team_id' => null,
+        'user_id' => $this->user->id,
     ]);
 
     $champ = Championship::first();
@@ -215,14 +221,15 @@ it('allows authenticated users to initiate storylines', function () {
 
     assertDatabaseHas('storylines', [
         'name' => 'The Bloodline Drama',
+        'user_id' => $this->user->id,
     ]);
 });
 
 it('allows authenticated users to commit show bookings and updates metrics', function () {
-    $show = Show::create(['name' => 'SmackDown', 'color' => '#0055ff']);
-    $s1 = Superstar::create(['name' => 'Cody Rhodes', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0]);
-    $s2 = Superstar::create(['name' => 'Roman Reigns', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0]);
-    $storyline = Storyline::create(['name' => 'Civil War']);
+    $show = Show::create(['name' => 'SmackDown', 'color' => '#0055ff', 'user_id' => $this->user->id]);
+    $s1 = Superstar::create(['name' => 'Cody Rhodes', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0, 'user_id' => $this->user->id]);
+    $s2 = Superstar::create(['name' => 'Roman Reigns', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0, 'user_id' => $this->user->id]);
+    $storyline = Storyline::create(['name' => 'Civil War', 'user_id' => $this->user->id]);
 
     actingAs($this->user)
         ->post(route('booking.commit'), [
@@ -261,4 +268,52 @@ it('allows authenticated users to commit show bookings and updates metrics', fun
         'show_name' => 'SmackDown',
         'notes' => 'A clean victory after a spectacular layout.',
     ]);
+});
+
+it('enforces that users cannot see or modify other users data', function () {
+    $otherUser = User::factory()->create();
+
+    // Create a show and superstar for the other user
+    $otherShow = Show::create(['name' => 'Other Show', 'color' => '#111111', 'user_id' => $otherUser->id]);
+    $otherSuperstar = Superstar::create(['name' => 'Other Guy', 'gender' => 'Male', 'show_id' => $otherShow->id, 'user_id' => $otherUser->id]);
+
+    // 1. Verify index loaded data does not contain other user's show or superstar
+    actingAs($this->user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(function ($page) {
+            $shows = $page->toArray()['props']['shows'];
+            $superstars = $page->toArray()['props']['superstars'];
+
+            expect($shows)->toBeEmpty();
+            expect($superstars)->toBeEmpty();
+        });
+
+    // 2. Verify editing or deleting other user's show returns 403
+    actingAs($this->user)
+        ->put(route('shows.update', $otherShow), [
+            'name' => 'Hacked Show Name',
+            'color' => '#111111',
+        ])
+        ->assertStatus(403);
+
+    actingAs($this->user)
+        ->delete(route('shows.destroy', $otherShow))
+        ->assertStatus(403);
+
+    // 3. Verify editing or deleting other user's superstar returns 403
+    actingAs($this->user)
+        ->put(route('superstars.update', $otherSuperstar), [
+            'name' => 'Hacked Superstar Name',
+            'gender' => 'Male',
+            'show_id' => $otherShow->id,
+            'wins' => 0,
+            'losses' => 0,
+            'draws' => 0,
+        ])
+        ->assertStatus(403);
+
+    actingAs($this->user)
+        ->delete(route('superstars.destroy', $otherSuperstar))
+        ->assertStatus(403);
 });

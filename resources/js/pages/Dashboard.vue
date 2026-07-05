@@ -687,23 +687,42 @@ function compressAndConvertImage(
 }
 
 // Helpers
+const logout = () => {
+    router.post('/logout');
+};
+
 function route(name: string, param?: string | number): string {
     switch (name) {
-        case 'shows.store': return '/shows';
-        case 'shows.update': return `/shows/${param}`;
-        case 'shows.destroy': return `/shows/${param}`;
-        case 'superstars.store': return '/superstars';
-        case 'superstars.update': return `/superstars/${param}`;
-        case 'superstars.destroy': return `/superstars/${param}`;
-        case 'superstars.import': return '/superstars/import';
-        case 'teams.store': return '/teams';
-        case 'teams.destroy': return `/teams/${param}`;
-        case 'championships.store': return '/championships';
-        case 'championships.update': return `/championships/${param}`;
-        case 'championships.destroy': return `/championships/${param}`;
-        case 'storylines.store': return '/storylines';
-        case 'booking.commit': return '/booking/commit';
-        default: return '';
+        case 'shows.store':
+            return '/shows';
+        case 'shows.update':
+            return `/shows/${param}`;
+        case 'shows.destroy':
+            return `/shows/${param}`;
+        case 'superstars.store':
+            return '/superstars';
+        case 'superstars.update':
+            return `/superstars/${param}`;
+        case 'superstars.destroy':
+            return `/superstars/${param}`;
+        case 'superstars.import':
+            return '/superstars/import';
+        case 'teams.store':
+            return '/teams';
+        case 'teams.destroy':
+            return `/teams/${param}`;
+        case 'championships.store':
+            return '/championships';
+        case 'championships.update':
+            return `/championships/${param}`;
+        case 'championships.destroy':
+            return `/championships/${param}`;
+        case 'storylines.store':
+            return '/storylines';
+        case 'booking.commit':
+            return '/booking/commit';
+        default:
+            return '';
     }
 }
 
@@ -720,25 +739,57 @@ const topSuperstars = computed(() => {
     >
         <!-- Premium Tabs Subnavigation Bar -->
         <div
-            class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/40 p-2.5 backdrop-blur"
+            class="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900/40 p-4 backdrop-blur"
         >
-            <div class="flex items-center space-x-3.5 pl-2">
-                <div
-                    class="flex items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 p-2 text-xl font-black tracking-wider text-slate-950 shadow-lg shadow-amber-500/10"
-                >
-                    <Tv class="h-6 w-6" />
+            <div
+                class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/60 pb-3"
+            >
+                <div class="flex items-center space-x-3.5 pl-2">
+                    <div
+                        class="flex items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 p-2 text-xl font-black tracking-wider text-slate-950 shadow-lg shadow-amber-500/10"
+                    >
+                        <Tv class="h-6 w-6" />
+                    </div>
+                    <div>
+                        <h1
+                            class="text-base leading-tight font-black text-white"
+                        >
+                            Universe Tracker
+                        </h1>
+                        <p class="text-[10px] tracking-wide text-slate-400">
+                            Elite Booking & Metrics engine
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="text-base leading-tight font-black text-white">
-                        Universe Tracker
-                    </h1>
-                    <p class="text-[10px] tracking-wide text-slate-400">
-                        Elite Booking & Metrics engine
-                    </p>
+
+                <!-- User actions -->
+                <div class="flex items-center gap-3">
+                    <div class="hidden text-right sm:block">
+                        <div class="text-xs font-bold text-slate-200">
+                            {{ $page.props.auth.user.name }}
+                        </div>
+                        <div class="text-[10px] text-slate-500">
+                            {{ $page.props.auth.user.email }}
+                        </div>
+                    </div>
+                    <a
+                        href="/settings/profile"
+                        class="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 transition hover:bg-slate-800"
+                    >
+                        <Pencil class="h-3.5 w-3.5" />
+                        Edit Profile
+                    </a>
+                    <button
+                        @click="logout"
+                        class="flex items-center gap-1 rounded-lg border border-red-900/60 bg-red-950/40 px-2.5 py-1.5 text-[11px] font-semibold text-red-400 transition hover:bg-red-950 hover:text-red-300"
+                    >
+                        <UserX class="h-3.5 w-3.5" />
+                        Sign Out
+                    </button>
                 </div>
             </div>
 
-            <nav class="flex flex-wrap gap-1.5">
+            <nav class="flex flex-wrap gap-1.5 pl-2">
                 <button
                     @click="switchTab('dashboard')"
                     :class="[

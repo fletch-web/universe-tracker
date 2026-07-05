@@ -1,7 +1,9 @@
 # Tasks To Complete
 
-1. Convert the universe-tracker.html file into Laravel Inertia.js + Tailwind CSS app.
+1. Change the dashboard to no longer use the VUE starter kit. We just want to see the main application layout.
 
-2. Add a coloured border around the superstar portraits. The colour should indicate the show that the superstar is assigned to.
+2. On the dashboard main page we need to be able to edit the current user's profile or sign out.
 
-3. Write tests that cover all functionality included in the project after the other changes have been made.
+3. Ensure that different users cannot see each others data. The system should only show data to a user that that user has enterred.
+
+4. Write tests to ensure the newly added functionality works as expected.

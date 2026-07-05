@@ -16,6 +16,7 @@ class ShowController extends Controller
             'image' => 'nullable|string',
         ]);
 
+        $validated['user_id'] = auth()->id();
         Show::create($validated);
 
         return back()->with('toast', 'Show initialized successfully!');
@@ -23,6 +24,10 @@ class ShowController extends Controller
 
     public function update(Request $request, Show $show): RedirectResponse
     {
+        if ($show->user_id !== auth()->id()) {
+            abort(403);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'color' => 'required|string|max:7',
@@ -36,6 +41,10 @@ class ShowController extends Controller
 
     public function destroy(Show $show): RedirectResponse
     {
+        if ($show->user_id !== auth()->id()) {
+            abort(403);
+        }
+
         $show->delete();
 
         return back()->with('toast', 'Show expunged successfully!');

@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Championship;
+use App\Models\Superstar;
+use App\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ChampionshipController extends Controller
 {
@@ -12,7 +15,10 @@ class ChampionshipController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'show_id' => 'required|exists:shows,id',
+            'show_id' => [
+                'required',
+                Rule::exists('shows', 'id')->where('user_id', auth()->id()),
+            ],
             'type' => 'required|string|in:Singles,TagTeam',
             'champion_id' => 'nullable',
         ]);
@@ -23,14 +29,23 @@ class ChampionshipController extends Controller
             'type' => $validated['type'],
             'champion_superstar_id' => null,
             'champion_team_id' => null,
+            'user_id' => auth()->id(),
         ];
 
         $champId = $validated['champion_id'] ?? null;
         if ($champId && $champId !== 'VACANT') {
             if ($validated['type'] === 'Singles') {
-                $data['champion_superstar_id'] = (int) $champId;
+                $superstar = Superstar::where('id', $champId)->where('user_id', auth()->id())->first();
+                if (! $superstar) {
+                    return back()->withErrors(['champion_id' => 'Invalid superstar selected.']);
+                }
+                $data['champion_superstar_id'] = $superstar->id;
             } else {
-                $data['champion_team_id'] = (int) $champId;
+                $team = Team::where('id', $champId)->where('user_id', auth()->id())->first();
+                if (! $team) {
+                    return back()->withErrors(['champion_id' => 'Invalid team selected.']);
+                }
+                $data['champion_team_id'] = $team->id;
             }
         }
 
@@ -41,9 +56,16 @@ class ChampionshipController extends Controller
 
     public function update(Request $request, Championship $championship): RedirectResponse
     {
+        if ($championship->user_id !== auth()->id()) {
+            abort(403);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'show_id' => 'required|exists:shows,id',
+            'show_id' => [
+                'required',
+                Rule::exists('shows', 'id')->where('user_id', auth()->id()),
+            ],
             'type' => 'required|string|in:Singles,TagTeam',
             'champion_id' => 'nullable',
         ]);
@@ -59,9 +81,17 @@ class ChampionshipController extends Controller
         $champId = $validated['champion_id'] ?? null;
         if ($champId && $champId !== 'VACANT') {
             if ($validated['type'] === 'Singles') {
-                $data['champion_superstar_id'] = (int) $champId;
+                $superstar = Superstar::where('id', $champId)->where('user_id', auth()->id())->first();
+                if (! $superstar) {
+                    return back()->withErrors(['champion_id' => 'Invalid superstar selected.']);
+                }
+                $data['champion_superstar_id'] = $superstar->id;
             } else {
-                $data['champion_team_id'] = (int) $champId;
+                $team = Team::where('id', $champId)->where('user_id', auth()->id())->first();
+                if (! $team) {
+                    return back()->withErrors(['champion_id' => 'Invalid team selected.']);
+                }
+                $data['champion_team_id'] = $team->id;
             }
         }
 
@@ -72,6 +102,10 @@ class ChampionshipController extends Controller
 
     public function destroy(Championship $championship): RedirectResponse
     {
+        if ($championship->user_id !== auth()->id()) {
+            abort(403);
+        }
+
         $championship->delete();
 
         return back()->with('toast', 'Championship decommissioned successfully!');
