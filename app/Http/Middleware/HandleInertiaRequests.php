@@ -35,6 +35,14 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $toast = $request->session()->get('toast');
+        if (is_string($toast)) {
+            $toast = [
+                'type' => 'success',
+                'message' => $toast,
+            ];
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -42,6 +50,9 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'flash' => [
+                'toast' => $toast,
+            ],
         ];
     }
 }
