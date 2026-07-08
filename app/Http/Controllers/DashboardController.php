@@ -29,11 +29,16 @@ class DashboardController extends Controller
                 'show',
                 'matches.c1Superstar',
                 'matches.c2Superstar',
+                'matches.c3Superstar',
+                'matches.c4Superstar',
                 'matches.c1Team',
                 'matches.c2Team',
+                'matches.c3Team',
+                'matches.c4Team',
                 'matches.winnerSuperstar',
                 'matches.winnerTeam',
                 'matches.storyline',
+                'matches.championship',
             ])->latest()->get(),
         ]);
     }

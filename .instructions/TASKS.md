@@ -1,9 +1,7 @@
 # Tasks To Complete
 
-1. Change the dashboard to no longer use the VUE starter kit. We just want to see the main application layout.
+1. When registering a new superstar any PLE shows should NOT appear in the show dropdown as they shouldn't be able to be assigned to a PLE.
 
-2. On the dashboard main page we need to be able to edit the current user's profile or sign out.
+2. When registering a new superstar or team/faction we should preserve the user's scroll position so they don't have to keep scrolling back to add another.
 
-3. Ensure that different users cannot see each others data. The system should only show data to a user that that user has enterred.
-
-4. Write tests to ensure the newly added functionality works as expected.
+3. Write tests to ensure the newly added functionality works as expected.

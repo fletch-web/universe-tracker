@@ -30,76 +30,101 @@ const user = computed(() => page.props.auth.user);
 <template>
     <Head title="Profile settings" />
 
-    <h1 class="sr-only">Profile settings</h1>
-
     <div class="flex flex-col space-y-6">
-        <Heading
-            variant="small"
-            title="Profile"
-            description="Update your name and email address"
-        />
-
-        <Form
-            v-bind="ProfileController.update.form()"
-            class="space-y-6"
-            v-slot="{ errors, processing }"
+        <!-- Profile Card Panel -->
+        <div
+            class="space-y-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow"
         >
-            <div class="grid gap-2">
-                <Label for="name">Name</Label>
-                <Input
-                    id="name"
-                    class="mt-1 block w-full"
-                    name="name"
-                    :default-value="user.name"
-                    required
-                    autocomplete="name"
-                    placeholder="Full name"
-                />
-                <InputError class="mt-2" :message="errors.name" />
-            </div>
-
-            <div class="grid gap-2">
-                <Label for="email">Email address</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    name="email"
-                    :default-value="user.email"
-                    required
-                    autocomplete="username"
-                    placeholder="Email address"
-                />
-                <InputError class="mt-2" :message="errors.email" />
-            </div>
-
-            <div v-if="page.props.mustVerifyEmail && !user.email_verified_at">
-                <p class="-mt-4 text-sm text-muted-foreground">
-                    Your email address is unverified.
-                    <Link
-                        :href="send()"
-                        as="button"
-                        class="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
-                    >
-                        Click here to re-send the verification email.
-                    </Link>
+            <div class="border-b border-slate-800/60 pb-3">
+                <h2
+                    class="text-sm font-black tracking-wider text-white uppercase"
+                >
+                    Profile Information
+                </h2>
+                <p class="mt-1 text-[10px] text-slate-400">
+                    Update your account name and email address
                 </p>
+            </div>
+
+            <Form
+                v-bind="ProfileController.update.form()"
+                class="space-y-4"
+                v-slot="{ errors, processing }"
+            >
+                <div class="grid gap-1">
+                    <Label
+                        for="name"
+                        class="text-[10px] font-bold tracking-wider text-slate-400 uppercase"
+                        >Name</Label
+                    >
+                    <Input
+                        id="name"
+                        class="mt-1 block h-10 w-full rounded-xl border-slate-800 bg-slate-950 text-white placeholder-slate-500 focus-visible:border-amber-400 focus-visible:ring-amber-500/30"
+                        name="name"
+                        :default-value="user.name"
+                        required
+                        autocomplete="name"
+                        placeholder="Full name"
+                    />
+                    <InputError class="mt-1" :message="errors.name" />
+                </div>
+
+                <div class="grid gap-1">
+                    <Label
+                        for="email"
+                        class="text-[10px] font-bold tracking-wider text-slate-400 uppercase"
+                        >Email address</Label
+                    >
+                    <Input
+                        id="email"
+                        type="email"
+                        class="mt-1 block h-10 w-full rounded-xl border-slate-800 bg-slate-950 text-white placeholder-slate-500 focus-visible:border-amber-400 focus-visible:ring-amber-500/30"
+                        name="email"
+                        :default-value="user.email"
+                        required
+                        autocomplete="username"
+                        placeholder="Email address"
+                    />
+                    <InputError class="mt-1" :message="errors.email" />
+                </div>
 
                 <div
-                    v-if="page.props.status === 'verification-link-sent'"
-                    class="mt-2 text-sm font-medium text-green-600"
+                    v-if="page.props.mustVerifyEmail && !user.email_verified_at"
+                    class="rounded-xl border border-amber-500/25 bg-amber-500/5 p-3"
                 >
-                    A new verification link has been sent to your email address.
+                    <p class="text-xs font-medium text-amber-400">
+                        Your email address is unverified.
+                        <Link
+                            :href="send()"
+                            class="ml-1 font-bold text-amber-400 underline hover:text-amber-300"
+                        >
+                            Click here to re-send the verification email.
+                        </Link>
+                    </p>
+
+                    <div
+                        v-if="page.props.status === 'verification-link-sent'"
+                        class="mt-1.5 text-xs font-semibold text-emerald-400"
+                    >
+                        A new verification link has been sent to your email
+                        address.
+                    </div>
                 </div>
-            </div>
 
-            <div class="flex items-center gap-4">
-                <Button :disabled="processing" data-test="update-profile-button"
-                    >Save</Button
-                >
-            </div>
-        </Form>
+                <div class="flex items-center pt-2">
+                    <button
+                        type="submit"
+                        class="flex cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-bold text-slate-950 shadow transition-all hover:bg-amber-300 disabled:opacity-50"
+                        :disabled="processing"
+                        data-test="update-profile-button"
+                    >
+                        Save Settings
+                    </button>
+                </div>
+            </Form>
+        </div>
+
+        <!-- Delete account section -->
+        <DeleteUser />
     </div>
-
-    <DeleteUser />
 </template>

@@ -8,8 +8,21 @@ use App\Http\Controllers\StorylineController;
 use App\Http\Controllers\SuperstarController;
 use App\Http\Controllers\TeamController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\Rules\Password;
+use Inertia\Inertia;
+use Laravel\Fortify\Features;
 
-Route::inertia('/', 'Welcome')->name('home');
+Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+
+    return Inertia::render('Welcome', [
+        'canResetPassword' => Features::enabled(Features::resetPasswords()),
+        'status' => session('status'),
+        'passwordRules' => Password::defaults()->toPasswordRulesString(),
+    ]);
+})->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');

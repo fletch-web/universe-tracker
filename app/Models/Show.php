@@ -12,13 +12,25 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property string $color
  * @property string|null $image
+ * @property bool $is_ple
  * @property int|null $user_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'color', 'image', 'user_id'])]
+#[Fillable(['name', 'color', 'image', 'user_id', 'is_ple'])]
 class Show extends Model
 {
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_ple' => 'boolean',
+        ];
+    }
     /**
      * @return HasMany<Superstar, $this>
      */

@@ -14,9 +14,11 @@ class ShowController extends Controller
             'name' => 'required|string|max:255',
             'color' => 'required|string|max:7',
             'image' => 'nullable|string',
+            'is_ple' => 'boolean|nullable',
         ]);
 
         $validated['user_id'] = auth()->id();
+        $validated['is_ple'] = $request->boolean('is_ple');
         Show::create($validated);
 
         return back()->with('toast', 'Show initialized successfully!');
@@ -32,8 +34,10 @@ class ShowController extends Controller
             'name' => 'required|string|max:255',
             'color' => 'required|string|max:7',
             'image' => 'nullable|string',
+            'is_ple' => 'boolean|nullable',
         ]);
 
+        $validated['is_ple'] = $request->boolean('is_ple');
         $show->update($validated);
 
         return back()->with('toast', 'Show updated successfully!');
