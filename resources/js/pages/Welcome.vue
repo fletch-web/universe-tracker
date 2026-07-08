@@ -274,6 +274,25 @@ const setTab = (tab: 'login' | 'register') => {
 
                                     <div class="grid gap-2">
                                         <Label
+                                            for="username"
+                                            class="text-[10px] font-bold tracking-wider text-slate-400 uppercase"
+                                            >Username</Label
+                                        >
+                                        <Input
+                                            id="username"
+                                            type="text"
+                                            required
+                                            :tabindex="1"
+                                            autocomplete="username"
+                                            name="username"
+                                            placeholder="username"
+                                            class="h-10 rounded-xl border-slate-800 bg-slate-950 text-white placeholder-slate-500 focus-visible:border-amber-400 focus-visible:ring-amber-500/30"
+                                        />
+                                        <InputError :message="errors.username" />
+                                    </div>
+
+                                    <div class="grid gap-2">
+                                        <Label
                                             for="register-email"
                                             class="text-[10px] font-bold tracking-wider text-slate-400 uppercase"
                                             >Email address</Label

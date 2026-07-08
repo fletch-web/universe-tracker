@@ -18,6 +18,17 @@ trait ProfileValidationRules
         return [
             'name' => $this->nameRules(),
             'email' => $this->emailRules($userId),
+            'username' => [
+                'required',
+                'string',
+                'alpha_dash',
+                'min:3',
+                'max:30',
+                $userId === null
+                    ? Rule::unique(User::class)
+                    : Rule::unique(User::class)->ignore($userId),
+            ],
+            'is_public' => ['sometimes', 'boolean'],
         ];
     }
 

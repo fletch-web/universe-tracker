@@ -88,6 +88,42 @@ const user = computed(() => page.props.auth.user);
                     <InputError class="mt-1" :message="errors.email" />
                 </div>
 
+                <div class="grid gap-1">
+                    <Label
+                        for="username"
+                        class="text-[10px] font-bold tracking-wider text-slate-400 uppercase"
+                        >Username</Label
+                    >
+                    <Input
+                        id="username"
+                        class="mt-1 block h-10 w-full rounded-xl border-slate-800 bg-slate-950 text-white placeholder-slate-500 focus-visible:border-amber-400 focus-visible:ring-amber-500/30"
+                        name="username"
+                        :default-value="user.username"
+                        required
+                        autocomplete="username"
+                        placeholder="username"
+                    />
+                    <InputError class="mt-1" :message="errors.username" />
+                </div>
+
+                <div class="flex items-center gap-2 py-2">
+                    <input type="hidden" name="is_public" value="0" />
+                    <input
+                        id="is_public"
+                        type="checkbox"
+                        name="is_public"
+                        value="1"
+                        :checked="user.is_public"
+                        class="h-4 w-4 rounded border-slate-800 bg-slate-950 text-amber-400 focus:ring-amber-500/30 focus:border-amber-400 cursor-pointer"
+                    />
+                    <Label
+                        for="is_public"
+                        class="text-[10px] font-bold tracking-wider text-slate-400 uppercase cursor-pointer"
+                        >Make Roster Public (read-only access via /@{ user.username || 'username' })</Label
+                    >
+                    <InputError class="mt-1" :message="errors.is_public" />
+                </div>
+
                 <div
                     v-if="page.props.mustVerifyEmail && !user.email_verified_at"
                     class="rounded-xl border border-amber-500/25 bg-amber-500/5 p-3"

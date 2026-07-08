@@ -41,6 +41,7 @@ test('new users can register successfully from the home page context', function 
     $response = $this->post(route('register.store'), [
         'name' => 'Home Page User',
         'email' => 'homepage@example.com',
+        'username' => 'homepage_user',
         'password' => 'password',
         'password_confirmation' => 'password',
     ]);

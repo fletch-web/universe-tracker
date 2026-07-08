@@ -1063,45 +1063,63 @@ const filteredPaginatedSuperstars = computed(() => {
                         <h1
                             class="text-base leading-tight font-black text-white"
                         >
-                            Universe Tracker
+                            {{ isReadOnly && owner ? `${owner.name}'s Universe` : 'Universe Tracker' }}
                         </h1>
                         <p class="text-[10px] tracking-wide text-slate-400">
-                            Elite Booking & Metrics engine
+                            {{ isReadOnly ? 'Public Read-Only View' : 'Elite Booking & Metrics engine' }}
                         </p>
                     </div>
                 </div>
 
                 <!-- User actions -->
                 <div class="flex items-center gap-3">
-                    <div class="hidden text-right sm:block">
-                        <div class="text-xs font-bold text-slate-200">
-                            {{ $page.props.auth.user.name }}
+                    <template v-if="isReadOnly">
+                        <a
+                            v-if="!$page.props.auth?.user"
+                            href="/"
+                            class="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 transition hover:bg-slate-800"
+                        >
+                            Sign In / Register
+                        </a>
+                        <a
+                            v-else
+                            href="/dashboard"
+                            class="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 transition hover:bg-slate-800"
+                        >
+                            Back to My Dashboard
+                        </a>
+                    </template>
+                    <template v-else-if="$page.props.auth?.user">
+                        <div class="hidden text-right sm:block">
+                            <div class="text-xs font-bold text-slate-200">
+                                {{ $page.props.auth.user.name }}
+                            </div>
+                            <div class="text-[10px] text-slate-500">
+                                {{ $page.props.auth.user.email }}
+                            </div>
                         </div>
-                        <div class="text-[10px] text-slate-500">
-                            {{ $page.props.auth.user.email }}
-                        </div>
-                    </div>
-                    <a
-                        href="/settings/profile"
-                        class="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 transition hover:bg-slate-800"
-                    >
-                        <Pencil class="h-3.5 w-3.5" />
-                        Edit Profile
-                    </a>
-                    <button
-                        @click="handleClearData"
-                        class="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-rose-400 transition hover:bg-rose-950/20 hover:border-rose-900/60"
-                    >
-                        <Trash class="h-3.5 w-3.5" />
-                        Clear Data
-                    </button>
-                    <button
-                        @click="logout"
-                        class="flex items-center gap-1 rounded-lg border border-red-900/60 bg-red-950/40 px-2.5 py-1.5 text-[11px] font-semibold text-red-400 transition hover:bg-red-950 hover:text-red-300"
-                    >
-                        <UserX class="h-3.5 w-3.5" />
-                        Sign Out
-                    </button>
+                        <a
+                            href="/settings/profile"
+                            class="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 transition hover:bg-slate-800"
+                        >
+                            <Pencil class="h-3.5 w-3.5" />
+                            Edit Profile
+                        </a>
+                        <button
+                            @click="handleClearData"
+                            class="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-rose-400 transition hover:bg-rose-950/20 hover:border-rose-900/60"
+                        >
+                            <Trash class="h-3.5 w-3.5" />
+                            Clear Data
+                        </button>
+                        <button
+                            @click="logout"
+                            class="flex items-center gap-1 rounded-lg border border-red-900/60 bg-red-950/40 px-2.5 py-1.5 text-[11px] font-semibold text-red-400 transition hover:bg-red-950 hover:text-red-300"
+                        >
+                            <UserX class="h-3.5 w-3.5" />
+                            Sign Out
+                        </button>
+                    </template>
                 </div>
             </div>
 
@@ -1655,10 +1673,12 @@ const filteredPaginatedSuperstars = computed(() => {
         <div v-if="currentTab === 'roster'" class="space-y-6">
             <!-- Roster Toolbar -->
             <div
-                class="grid grid-cols-1 gap-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 md:grid-cols-2"
+                class="grid grid-cols-1 gap-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-5"
+                :class="isReadOnly ? 'md:grid-cols-1' : 'md:grid-cols-2'"
             >
                 <!-- Excel Import -->
                 <div
+                    v-if="!isReadOnly"
                     class="border-b border-slate-800 pb-6 md:border-r md:border-b-0 md:pr-6 md:pb-0"
                 >
                     <h3
@@ -1704,7 +1724,7 @@ const filteredPaginatedSuperstars = computed(() => {
             <!-- Main Roster Area -->
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 <!-- Registration Forms Deck -->
-                <div class="h-fit space-y-6">
+                <div v-if="!isReadOnly" class="h-fit space-y-6">
                     <!-- Superstar Registration Form -->
                     <div
                         class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5"
@@ -1911,7 +1931,10 @@ const filteredPaginatedSuperstars = computed(() => {
                 </div>
 
                 <!-- Matrix displays -->
-                <div class="space-y-6 lg:col-span-2">
+                <div
+                    class="space-y-6"
+                    :class="isReadOnly ? 'lg:col-span-3' : 'lg:col-span-2'"
+                >
                     <!-- Superstar Active Matrix with Coloured border portraits -->
                     <div>
                         <h3
@@ -1999,7 +2022,7 @@ const filteredPaginatedSuperstars = computed(() => {
                                             <span>D: {{ s.draws }}</span>
                                         </div>
                                     </div>
-                                    <div class="flex space-x-0.5">
+                                    <div v-if="!isReadOnly" class="flex space-x-0.5">
                                         <button
                                             @click="startSuperstarEdit(s)"
                                             class="p-1.5 text-slate-500 transition hover:text-amber-400"
@@ -2056,6 +2079,7 @@ const filteredPaginatedSuperstars = computed(() => {
                                             {{ t.name }}
                                         </h4>
                                         <button
+                                            v-if="!isReadOnly"
                                             @click="deleteTeam(t.id)"
                                             class="text-slate-600 transition hover:text-rose-400"
                                         >
@@ -2107,6 +2131,7 @@ const filteredPaginatedSuperstars = computed(() => {
         >
             <!-- Championship Creation form -->
             <div
+                v-if="!isReadOnly"
                 class="h-fit rounded-2xl border border-slate-800 bg-slate-900/60 p-5"
             >
                 <h3
@@ -2133,43 +2158,45 @@ const filteredPaginatedSuperstars = computed(() => {
                             v-model="championshipForm.name"
                             required
                             class="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white focus:border-amber-400 focus:outline-none"
-                            placeholder="e.g., WWE Championship"
+                            placeholder="e.g., WWE Universal Title"
                         />
                     </div>
-                    <div>
-                        <label
-                            class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
-                            >Assigned Show Track</label
-                        >
-                        <select
-                            v-model="championshipForm.show_id"
-                            required
-                            class="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white focus:border-amber-400 focus:outline-none"
-                        >
-                            <option value="" disabled>Select Show</option>
-                            <option
-                                v-for="sh in shows"
-                                :key="sh.id"
-                                :value="sh.id"
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label
+                                class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
+                                >Division type</label
                             >
-                                {{ sh.name }}
-                            </option>
-                        </select>
-                    </div>
-                    <div>
-                        <label
-                            class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
-                            >Championship Classification</label
-                        >
-                        <select
-                            v-model="championshipForm.type"
-                            class="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white focus:border-amber-400 focus:outline-none"
-                        >
-                            <option value="Singles">Singles Division</option>
-                            <option value="TagTeam">
-                                Tag Team / Faction Division
-                            </option>
-                        </select>
+                            <select
+                                v-model="championshipForm.type"
+                                class="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white focus:border-amber-400 focus:outline-none"
+                            >
+                                <option value="Singles">Singles</option>
+                                <option value="TagTeam">Tag Team</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label
+                                class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
+                                >Assigned Brand</label
+                            >
+                            <select
+                                v-model="championshipForm.show_id"
+                                required
+                                class="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white focus:border-amber-400 focus:outline-none"
+                            >
+                                <option value="" disabled>
+                                    Select Show
+                                </option>
+                                <option
+                                    v-for="s in shows"
+                                    :key="s.id"
+                                    :value="s.id"
+                                >
+                                    {{ s.name }}
+                                </option>
+                            </select>
+                        </div>
                     </div>
                     <div>
                         <label
@@ -2230,7 +2257,10 @@ const filteredPaginatedSuperstars = computed(() => {
             </div>
 
             <!-- Active Championships status deck -->
-            <div class="space-y-4 lg:col-span-2">
+            <div
+                class="space-y-4"
+                :class="isReadOnly ? 'lg:col-span-3' : 'lg:col-span-2'"
+            >
                 <h3
                     class="flex items-center gap-2 text-sm font-bold text-white"
                 >
@@ -2291,11 +2321,11 @@ const filteredPaginatedSuperstars = computed(() => {
                                     }}
                                 </p>
                             </div>
-                            <div class="flex space-x-0.5">
+                            <div v-if="!isReadOnly" class="flex space-x-0.5">
                                 <button
                                     @click="startChampionshipEdit(ch)"
                                     class="text-slate-505 p-1.5 transition hover:text-amber-400"
-                                >
+                                  >
                                     <Pencil class="h-3.5 w-3.5" />
                                 </button>
                                 <button
@@ -2320,7 +2350,7 @@ const filteredPaginatedSuperstars = computed(() => {
             <div
                 class="h-fit space-y-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-5"
             >
-                <div>
+                <div v-if="!isReadOnly">
                     <h3
                         class="mb-4 flex items-center gap-2 text-sm font-bold text-white"
                     >
@@ -2353,7 +2383,7 @@ const filteredPaginatedSuperstars = computed(() => {
                     </form>
                 </div>
 
-                <div class="border-t border-slate-800 pt-5">
+                <div :class="isReadOnly ? '' : 'border-t border-slate-800 pt-5'">
                     <label
                         class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
                         >Select Storyline to View Timeline</label
@@ -2375,7 +2405,10 @@ const filteredPaginatedSuperstars = computed(() => {
             </div>
 
             <!-- Timeline visualization -->
-            <div class="space-y-4 lg:col-span-2">
+            <div
+                class="space-y-4"
+                :class="isReadOnly ? 'lg:col-span-3' : 'lg:col-span-2'"
+            >
                 <h3
                     class="flex items-center justify-between text-sm font-bold text-white"
                 >

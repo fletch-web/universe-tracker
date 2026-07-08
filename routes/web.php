@@ -50,3 +50,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 require __DIR__.'/settings.php';
+
+Route::get('/@{username}', [App\Http\Controllers\PublicUniverseController::class, 'show'])->name('universe.public');
