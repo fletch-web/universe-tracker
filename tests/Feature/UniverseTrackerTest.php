@@ -673,6 +673,80 @@ it('allows booking cross-brand matches at a PLE show and updates statistics corr
     ]);
 });
 
+it('allows authenticated users to clear all universe data', function () {
+    $show = Show::create(['name' => 'Raw', 'color' => '#ff0000', 'user_id' => $this->user->id]);
+    $s1 = Superstar::create(['name' => 'John Cena', 'gender' => 'Male', 'show_id' => $show->id, 'user_id' => $this->user->id]);
+    $championship = Championship::create([
+        'name' => 'WWE Championship',
+        'show_id' => $show->id,
+        'type' => 'Singles',
+        'champion_superstar_id' => $s1->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    // Create a ShowLog and a MatchLog
+    $showLog = ShowLog::create(['show_id' => $show->id, 'date' => '2026-07-08']);
+    App\Models\MatchLog::create([
+        'show_log_id' => $showLog->id,
+        'division' => 'Singles',
+        'c1_superstar_id' => $s1->id,
+        'c2_superstar_id' => $s1->id,
+        'outcome' => 'Decisive',
+        'winner_slot' => '1',
+        'winner_superstar_id' => $s1->id,
+    ]);
+
+    actingAs($this->user)
+        ->post(route('universe.clear'))
+        ->assertRedirect(route('dashboard'));
+
+    assertDatabaseMissing('shows', ['id' => $show->id]);
+    assertDatabaseMissing('superstars', ['id' => $s1->id]);
+    assertDatabaseMissing('championships', ['id' => $championship->id]);
+    assertDatabaseMissing('show_logs', ['id' => $showLog->id]);
+    assertDatabaseMissing('match_logs', ['show_log_id' => $showLog->id]);
+});
+
+it('paginates superstars and teams using infinite scroll on the dashboard index', function () {
+    $show = Show::create(['name' => 'Raw', 'color' => '#ff0000', 'user_id' => $this->user->id]);
+
+    // Create 15 superstars
+    for ($i = 1; $i <= 15; $i++) {
+        Superstar::create(['name' => "Superstar $i", 'gender' => 'Male', 'show_id' => $show->id, 'user_id' => $this->user->id]);
+    }
+
+    // Create 12 teams
+    for ($i = 1; $i <= 12; $i++) {
+        Team::create(['name' => "Team $i", 'user_id' => $this->user->id]);
+    }
+
+    actingAs($this->user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(function ($page) {
+            // Full collections (for business logic like booking, dropdowns)
+            $superstars = $page->toArray()['props']['superstars'];
+            $teams = $page->toArray()['props']['teams'];
+
+            expect($superstars)->toHaveCount(15);
+            expect($teams)->toHaveCount(12);
+
+            // Paginated scroll props (first page of 10 items each)
+            $paginatedSuperstars = $page->toArray()['props']['paginatedSuperstars'];
+            $paginatedTeams = $page->toArray()['props']['paginatedTeams'];
+
+            expect($paginatedSuperstars['data'])->toHaveCount(10);
+            expect($paginatedSuperstars['total'])->toBe(15);
+            expect($paginatedSuperstars['per_page'])->toBe(10);
+            expect($paginatedSuperstars['current_page'])->toBe(1);
+
+            expect($paginatedTeams['data'])->toHaveCount(10);
+            expect($paginatedTeams['total'])->toBe(12);
+            expect($paginatedTeams['per_page'])->toBe(10);
+            expect($paginatedTeams['current_page'])->toBe(1);
+        });
+});
+
 it('prevents superstars from being assigned to PLE shows', function () {
     $pleShow = Show::create([
         'name' => 'WrestleMania',
