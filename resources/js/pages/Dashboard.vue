@@ -1936,7 +1936,7 @@ const filteredPaginatedSuperstars = computed(() => {
                                 <div
                                     v-for="s in filteredPaginatedSuperstars"
                                     :key="s.id"
-                                    class="group relative flex items-center space-x-3.5 rounded-xl bg-slate-900/60 p-3 transition-all duration-200 border"
+                                    class="group relative flex items-center space-x-3.5 overflow-hidden rounded-xl bg-slate-900/60 p-3 transition-all duration-200 border"
                                     :class="[
                                         getSuperstarChampionships(s.id).length > 0
                                             ? 'border-amber-500/80 shadow-md shadow-amber-500/5'
@@ -1946,7 +1946,7 @@ const filteredPaginatedSuperstars = computed(() => {
                                     <!-- Championship Tooltip on Hover -->
                                     <div
                                         v-if="getSuperstarChampionships(s.id).length > 0"
-                                        class="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-slate-950/90 backdrop-blur-sm opacity-0 transition-all duration-200 group-hover:opacity-100"
+                                        class="pointer-events-none absolute left-[-1px] top-[-1px] w-[calc(100%+2px)] h-[calc(100%+2px)] z-20 flex items-center justify-center bg-slate-950/90 backdrop-blur-sm opacity-0 transition-all duration-200 group-hover:opacity-100"
                                     >
                                         <div class="text-center px-3">
                                             <div class="flex items-center justify-center gap-1 text-[10px] font-bold text-amber-400 uppercase tracking-wider mb-1.5">
@@ -1954,7 +1954,7 @@ const filteredPaginatedSuperstars = computed(() => {
                                             </div>
                                             <ul class="space-y-1">
                                                 <li v-for="c in getSuperstarChampionships(s.id)" :key="c.id" class="text-[10px] font-semibold text-slate-200 truncate">
-                                                    👑 {{ c.name }}
+                                                    {{ c.name }}
                                                 </li>
                                             </ul>
                                         </div>
