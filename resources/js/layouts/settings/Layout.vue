@@ -32,12 +32,14 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
         <!-- Settings Header -->
         <div class="flex flex-col gap-1 border-b border-slate-800 pb-4">
             <div class="flex items-center justify-between">
-                <h1 class="text-base leading-tight font-black text-white uppercase tracking-wider">
+                <h1
+                    class="text-base leading-tight font-black tracking-wider text-white uppercase"
+                >
                     Settings
                 </h1>
                 <Link
                     href="/dashboard"
-                    class="text-xs font-semibold text-amber-400 hover:text-amber-300 transition-colors"
+                    class="text-xs font-semibold text-amber-400 transition-colors hover:text-amber-300"
                 >
                     &larr; Back to Dashboard
                 </Link>

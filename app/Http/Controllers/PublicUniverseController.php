@@ -16,7 +16,11 @@ class PublicUniverseController extends Controller
 {
     public function show(string $username): Response
     {
-        $user = User::where('username', $username)->where('is_public', true)->firstOrFail();
+        $user = User::where('username', $username)
+            ->when(! auth()->check() || auth()->user()->username !== $username, function ($query) {
+                $query->where('is_public', true);
+            })
+            ->firstOrFail();
         $userId = $user->id;
 
         return Inertia::render('Dashboard', [
@@ -44,7 +48,7 @@ class PublicUniverseController extends Controller
                 'matches.storyline',
                 'matches.championship',
             ])->latest()->get(),
-            'isReadOnly' => true,
+            'isReadOnly' => ! auth()->check() || auth()->user()->id !== $userId,
             'owner' => [
                 'name' => $user->name,
                 'username' => $user->username,

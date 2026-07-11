@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Championship;
 use App\Models\MatchLog;
 use App\Models\Show;
 use App\Models\ShowLog;
@@ -98,6 +99,7 @@ class BookingController extends Controller
                     }
 
                     MatchLog::create($matchLogData);
+
                     continue;
                 }
 
@@ -114,16 +116,16 @@ class BookingController extends Controller
                 // Championship linking
                 $championship = null;
                 if ($championshipId && $championshipId !== 'NONE') {
-                    $championship = \App\Models\Championship::where('id', $championshipId)
+                    $championship = Championship::where('id', $championshipId)
                         ->where('user_id', auth()->id())
                         ->first();
-                    if ($championship instanceof \App\Models\Championship) {
+                    if ($championship instanceof Championship) {
                         $matchLogData['championship_id'] = $championship->id;
                     }
                 }
 
                 $isTeam = in_array($division, ['TagTeam', 'TripleThreatTag', 'Fatal4WayTag', 'ThreeOnThreeTag', 'FourOnFourTag']);
-                $isAdHoc = in_array($division, ['TagTeam', 'ThreeOnThreeTag', 'FourOnFourTag']) && !empty($matchData['team1_superstar_ids']);
+                $isAdHoc = in_array($division, ['TagTeam', 'ThreeOnThreeTag', 'FourOnFourTag']) && ! empty($matchData['team1_superstar_ids']);
                 $comp1Name = '';
                 $comp2Name = '';
                 $comp3Name = '';
@@ -176,7 +178,7 @@ class BookingController extends Controller
                         }
                         $winnerName = 'Stalemate No Contest (Draw)';
                     }
-                } else if (! $isTeam) {
+                } elseif (! $isTeam) {
                     $matchLogData['c1_superstar_id'] = (int) $c1Id;
                     $matchLogData['c2_superstar_id'] = (int) $c2Id;
 
@@ -233,7 +235,7 @@ class BookingController extends Controller
                         }
 
                         // Update Champion if Championship Match
-                        if ($championship instanceof \App\Models\Championship) {
+                        if ($championship instanceof Championship) {
                             $championship->champion_superstar_id = (int) $winningId;
                             $championship->champion_team_id = null;
                             $championship->save();
@@ -301,7 +303,7 @@ class BookingController extends Controller
                         }
 
                         // Update Champion if Championship Match
-                        if ($championship instanceof \App\Models\Championship) {
+                        if ($championship instanceof Championship) {
                             $championship->champion_team_id = (int) $winningId;
                             $championship->champion_superstar_id = null;
                             $championship->save();
@@ -322,7 +324,7 @@ class BookingController extends Controller
                         if ($stipulation) {
                             $desc = "[{$stipulation}] ".$desc;
                         }
-                        if ($championship instanceof \App\Models\Championship) {
+                        if ($championship instanceof Championship) {
                             $desc = "[{$championship->name} Match] ".$desc;
                         }
                         if ($outcome === 'Decisive') {

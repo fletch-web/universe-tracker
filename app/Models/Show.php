@@ -31,6 +31,7 @@ class Show extends Model
             'is_ple' => 'boolean',
         ];
     }
+
     /**
      * @return HasMany<Superstar, $this>
      */

@@ -18,7 +18,7 @@ class SuperstarController extends Controller
             'gender' => 'required|string|in:Male,Female',
             'show_id' => [
                 'required',
-                Rule::exists('shows', 'id')->where('user_id', auth()->id())->where(function($q) {
+                Rule::exists('shows', 'id')->where('user_id', auth()->id())->where(function ($q) {
                     $q->where('is_ple', false)->orWhereNull('is_ple');
                 }),
             ],
@@ -42,7 +42,7 @@ class SuperstarController extends Controller
             'gender' => 'required|string|in:Male,Female',
             'show_id' => [
                 'required',
-                Rule::exists('shows', 'id')->where('user_id', auth()->id())->where(function($q) {
+                Rule::exists('shows', 'id')->where('user_id', auth()->id())->where(function ($q) {
                     $q->where('is_ple', false)->orWhereNull('is_ple');
                 }),
             ],

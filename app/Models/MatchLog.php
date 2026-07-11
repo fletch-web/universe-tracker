@@ -27,8 +27,8 @@ use Illuminate\Support\Carbon;
  * @property int|null $c4_superstar_id
  * @property int|null $c3_team_id
  * @property int|null $c4_team_id
- * @property array|null $team1_superstar_ids
- * @property array|null $team2_superstar_ids
+ * @property array<int>|null $team1_superstar_ids
+ * @property array<int>|null $team2_superstar_ids
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -68,6 +68,7 @@ class MatchLog extends Model
             'team2_superstar_ids' => 'array',
         ];
     }
+
     /**
      * @return BelongsTo<ShowLog, $this>
      */

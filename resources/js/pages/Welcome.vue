@@ -21,10 +21,17 @@ import { store as loginStore } from '@/routes/login';
 import { request as passwordResetRequest } from '@/routes/password';
 import { store as registerStore } from '@/routes/register';
 
+interface PublicUser {
+    id: number;
+    name: string;
+    username: string;
+}
+
 defineProps<{
     status?: string;
     canResetPassword: boolean;
     passwordRules: string;
+    publicUsers?: PublicUser[];
 }>();
 
 const activeTab = ref<'login' | 'register'>('login');
@@ -288,7 +295,9 @@ const setTab = (tab: 'login' | 'register') => {
                                             placeholder="username"
                                             class="h-10 rounded-xl border-slate-800 bg-slate-950 text-white placeholder-slate-500 focus-visible:border-amber-400 focus-visible:ring-amber-500/30"
                                         />
-                                        <InputError :message="errors.username" />
+                                        <InputError
+                                            :message="errors.username"
+                                        />
                                     </div>
 
                                     <div class="grid gap-2">
@@ -368,6 +377,55 @@ const setTab = (tab: 'login' | 'register') => {
                             </Form>
                         </div>
                     </CardContent>
+                </Card>
+
+                <!-- Public Universes Card -->
+                <Card
+                    v-if="publicUsers && publicUsers.length > 0"
+                    class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-xl backdrop-blur-md"
+                >
+                    <div class="mb-4">
+                        <h3
+                            class="flex items-center gap-2 text-sm font-bold text-white"
+                        >
+                            <span
+                                class="flex h-2 w-2 animate-pulse rounded-full bg-emerald-500"
+                            ></span>
+                            Public Universes
+                        </h3>
+                        <p class="mt-1 text-xs text-slate-400">
+                            Explore other managers' public universe profiles &
+                            booking metrics.
+                        </p>
+                    </div>
+                    <div>
+                        <ul
+                            class="max-h-[200px] space-y-2 overflow-y-auto pr-1"
+                        >
+                            <li
+                                v-for="user in publicUsers"
+                                :key="user.id"
+                                class="flex items-center justify-between rounded-xl border border-slate-800/60 bg-slate-950/40 p-3 transition-all duration-200 hover:border-amber-500/40"
+                            >
+                                <div class="min-w-0">
+                                    <p
+                                        class="truncate text-xs font-bold text-white"
+                                    >
+                                        {{ user.name }}
+                                    </p>
+                                    <p class="text-[10px] text-slate-500">
+                                        @{{ user.username }}
+                                    </p>
+                                </div>
+                                <Link
+                                    :href="`/@${user.username}`"
+                                    class="rounded-lg border border-amber-400/20 bg-amber-400/10 px-2.5 py-1 text-[10px] font-bold text-amber-400 transition-all duration-200 hover:bg-amber-400 hover:text-slate-950"
+                                >
+                                    View Universe
+                                </Link>
+                            </li>
+                        </ul>
+                    </div>
                 </Card>
             </div>
         </div>

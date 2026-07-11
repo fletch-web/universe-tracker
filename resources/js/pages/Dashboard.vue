@@ -81,7 +81,16 @@ interface Storyline {
 interface MatchLog {
     id: number;
     show_log_id: number;
-    division: 'Singles' | 'TagTeam' | 'TripleThreat' | 'Fatal4Way' | 'TripleThreatTag' | 'Fatal4WayTag' | 'ThreeOnThreeTag' | 'FourOnFourTag' | 'Segment';
+    division:
+        | 'Singles'
+        | 'TagTeam'
+        | 'TripleThreat'
+        | 'Fatal4Way'
+        | 'TripleThreatTag'
+        | 'Fatal4WayTag'
+        | 'ThreeOnThreeTag'
+        | 'FourOnFourTag'
+        | 'Segment';
     c1_superstar_id: number | null;
     c2_superstar_id: number | null;
     c1_team_id: number | null;
@@ -101,6 +110,12 @@ interface MatchLog {
     winner_superstar?: Superstar;
     winner_team?: Team;
     storyline?: Storyline;
+    championship?: Championship;
+    stipulation?: string;
+    c3_superstar?: Superstar;
+    c4_superstar?: Superstar;
+    c3_team?: Team;
+    c4_team?: Team;
 }
 
 interface ShowLog {
@@ -121,16 +136,27 @@ interface PaginatedData<T> {
     prev_page_url: string | null;
 }
 
-const props = defineProps<{
-    shows: Show[];
-    superstars: Superstar[];
-    teams: Team[];
-    paginatedSuperstars: PaginatedData<Superstar>;
-    paginatedTeams: PaginatedData<Team>;
-    championships: Championship[];
-    storylines: Storyline[];
-    history: ShowLog[];
-}>();
+const props = withDefaults(
+    defineProps<{
+        shows: Show[];
+        superstars: Superstar[];
+        teams: Team[];
+        paginatedSuperstars: PaginatedData<Superstar>;
+        paginatedTeams: PaginatedData<Team>;
+        championships: Championship[];
+        storylines: Storyline[];
+        history: ShowLog[];
+        isReadOnly?: boolean;
+        owner?: {
+            name: string;
+            username: string;
+        } | null;
+    }>(),
+    {
+        isReadOnly: false,
+        owner: null,
+    },
+);
 
 // Breadcrumbs configuration for starter kit layout
 defineOptions({
@@ -488,7 +514,16 @@ const activeStoryline = computed(() => {
 // --- Booking Engine Deck ---
 interface StagedMatch {
     id: string;
-    division: 'Singles' | 'TagTeam' | 'TripleThreat' | 'Fatal4Way' | 'TripleThreatTag' | 'Fatal4WayTag' | 'ThreeOnThreeTag' | 'FourOnFourTag' | 'Segment';
+    division:
+        | 'Singles'
+        | 'TagTeam'
+        | 'TripleThreat'
+        | 'Fatal4Way'
+        | 'TripleThreatTag'
+        | 'Fatal4WayTag'
+        | 'ThreeOnThreeTag'
+        | 'FourOnFourTag'
+        | 'Segment';
     c1Id: number;
     c2Id: number;
     c3Id?: number;
@@ -516,7 +551,17 @@ interface StagedMatch {
 
 const bookingShowSelect = ref<string | number>('');
 const bookingDate = ref(new Date().toISOString().split('T')[0]);
-const bookingMatchType = ref<'Singles' | 'TagTeam' | 'TripleThreat' | 'Fatal4Way' | 'TripleThreatTag' | 'Fatal4WayTag' | 'ThreeOnThreeTag' | 'FourOnFourTag' | 'Segment'>('Singles');
+const bookingMatchType = ref<
+    | 'Singles'
+    | 'TagTeam'
+    | 'TripleThreat'
+    | 'Fatal4Way'
+    | 'TripleThreatTag'
+    | 'Fatal4WayTag'
+    | 'ThreeOnThreeTag'
+    | 'FourOnFourTag'
+    | 'Segment'
+>('Singles');
 const bookingTagTeamType = ref<'Faction' | 'AdHoc'>('Faction');
 const bookingTeam1Superstars = ref<(number | string)[]>([]);
 const bookingTeam2Superstars = ref<(number | string)[]>([]);
@@ -567,13 +612,26 @@ const bookingCompetitors1 = computed(() => {
         return [];
     }
 
-    const isTeamMatch = ['TagTeam', 'TripleThreatTag', 'Fatal4WayTag', 'ThreeOnThreeTag', 'FourOnFourTag'].includes(bookingMatchType.value);
-    const isFactionBased = isTeamMatch && !(['TagTeam', 'ThreeOnThreeTag', 'FourOnFourTag'].includes(bookingMatchType.value) && bookingTagTeamType.value === 'AdHoc');
+    const isTeamMatch = [
+        'TagTeam',
+        'TripleThreatTag',
+        'Fatal4WayTag',
+        'ThreeOnThreeTag',
+        'FourOnFourTag',
+    ].includes(bookingMatchType.value);
+    const isFactionBased =
+        isTeamMatch &&
+        !(
+            ['TagTeam', 'ThreeOnThreeTag', 'FourOnFourTag'].includes(
+                bookingMatchType.value,
+            ) && bookingTagTeamType.value === 'AdHoc'
+        );
 
     if (!isFactionBased) {
         if (selectedBookingShow.value?.is_ple) {
             return props.superstars;
         }
+
         return props.superstars.filter(
             (s) => s.show_id === Number(bookingShowSelect.value),
         );
@@ -590,34 +648,70 @@ const bookingChampionships = computed(() => {
     if (!bookingShowSelect.value) {
         return [];
     }
-    const isTeamMatch = ['TagTeam', 'TripleThreatTag', 'Fatal4WayTag', 'ThreeOnThreeTag', 'FourOnFourTag'].includes(bookingMatchType.value);
-    const isFactionBased = isTeamMatch && !(['TagTeam', 'ThreeOnThreeTag', 'FourOnFourTag'].includes(bookingMatchType.value) && bookingTagTeamType.value === 'AdHoc');
+
+    const isTeamMatch = [
+        'TagTeam',
+        'TripleThreatTag',
+        'Fatal4WayTag',
+        'ThreeOnThreeTag',
+        'FourOnFourTag',
+    ].includes(bookingMatchType.value);
+    const isFactionBased =
+        isTeamMatch &&
+        !(
+            ['TagTeam', 'ThreeOnThreeTag', 'FourOnFourTag'].includes(
+                bookingMatchType.value,
+            ) && bookingTagTeamType.value === 'AdHoc'
+        );
 
     const isPLE = !!selectedBookingShow.value?.is_ple;
 
     if (isTeamMatch && isFactionBased) {
         return props.championships.filter(
-            (c) => (isPLE || c.show_id === Number(bookingShowSelect.value)) && c.type === 'TagTeam'
+            (c) =>
+                (isPLE || c.show_id === Number(bookingShowSelect.value)) &&
+                c.type === 'TagTeam',
         );
     } else if (!isTeamMatch) {
         return props.championships.filter(
-            (c) => (isPLE || c.show_id === Number(bookingShowSelect.value)) && c.type === 'Singles'
+            (c) =>
+                (isPLE || c.show_id === Number(bookingShowSelect.value)) &&
+                c.type === 'Singles',
         );
     }
+
     return [];
 });
 
 const isTeamMatch = computed(() => {
-    return ['TagTeam', 'TripleThreatTag', 'Fatal4WayTag', 'ThreeOnThreeTag', 'FourOnFourTag'].includes(bookingMatchType.value);
+    return [
+        'TagTeam',
+        'TripleThreatTag',
+        'Fatal4WayTag',
+        'ThreeOnThreeTag',
+        'FourOnFourTag',
+    ].includes(bookingMatchType.value);
 });
 
 const isFactionBased = computed(() => {
-    return isTeamMatch.value && !(['TagTeam', 'ThreeOnThreeTag', 'FourOnFourTag'].includes(bookingMatchType.value) && bookingTagTeamType.value === 'AdHoc');
+    return (
+        isTeamMatch.value &&
+        !(
+            ['TagTeam', 'ThreeOnThreeTag', 'FourOnFourTag'].includes(
+                bookingMatchType.value,
+            ) && bookingTagTeamType.value === 'AdHoc'
+        )
+    );
 });
 
-const getSuperstarsFromIds = (ids?: number[]) => {
-    if (!ids) return [];
-    return ids.map(id => props.superstars.find(s => s.id === id)).filter(Boolean);
+const getSuperstarsFromIds = (ids?: number[] | null) => {
+    if (!ids) {
+        return [];
+    }
+
+    return ids
+        .map((id) => props.superstars.find((s) => s.id === id))
+        .filter((s): s is Superstar => !!s);
 };
 
 const handleBookingShowChange = () => {
@@ -644,6 +738,7 @@ const addMatchToStagingCard = () => {
     if (bookingMatchType.value === 'Segment') {
         if (!bookingNotes.value.trim()) {
             alert('Please describe the segment or promo content.');
+
             return;
         }
 
@@ -668,14 +763,22 @@ const addMatchToStagingCard = () => {
         stagedMatches.value.push(newStagedMatch);
         activeMatchPreview.value = newStagedMatch;
         bookingNotes.value = '';
+
         return;
     }
 
     const isTeamMatchVal = isTeamMatch.value;
     const isFactionBasedVal = isFactionBased.value;
 
-    const needComp3 = ['TripleThreat', 'TripleThreatTag', 'Fatal4Way', 'Fatal4WayTag'].includes(bookingMatchType.value);
-    const needComp4 = ['Fatal4Way', 'Fatal4WayTag'].includes(bookingMatchType.value);
+    const needComp3 = [
+        'TripleThreat',
+        'TripleThreatTag',
+        'Fatal4Way',
+        'Fatal4WayTag',
+    ].includes(bookingMatchType.value);
+    const needComp4 = ['Fatal4Way', 'Fatal4WayTag'].includes(
+        bookingMatchType.value,
+    );
 
     let comp1Name = '',
         comp2Name = '',
@@ -689,32 +792,64 @@ const addMatchToStagingCard = () => {
     let winnerName = 'Stalemate No Contest (Draw)';
     let team1_superstar_ids: number[] | undefined = undefined;
     let team2_superstar_ids: number[] | undefined = undefined;
-    let c1Id = 0, c2Id = 0, c3Id = 0, c4Id = 0;
+    let c1Id = 0,
+        c2Id = 0,
+        c3Id = 0,
+        c4Id = 0;
 
     if (isTeamMatchVal && !isFactionBasedVal) {
         // Ad-Hoc Tag Team / 3-on-3 Tag / 4-on-4 Tag
-        const expectedCount = bookingMatchType.value === 'TagTeam' ? 2 : (bookingMatchType.value === 'ThreeOnThreeTag' ? 3 : 4);
-        
-        if (bookingTeam1Superstars.value.length !== expectedCount || bookingTeam2Superstars.value.length !== expectedCount) {
+        const expectedCount =
+            bookingMatchType.value === 'TagTeam'
+                ? 2
+                : bookingMatchType.value === 'ThreeOnThreeTag'
+                  ? 3
+                  : 4;
+
+        if (
+            bookingTeam1Superstars.value.length !== expectedCount ||
+            bookingTeam2Superstars.value.length !== expectedCount
+        ) {
             alert(`Select exactly ${expectedCount} superstars for each team.`);
+
             return;
         }
 
         // Check if any selection is empty
-        if (bookingTeam1Superstars.value.some(id => !id) || bookingTeam2Superstars.value.some(id => !id)) {
-            alert('Verify competing entries exist within selected show roster limits.');
+        if (
+            bookingTeam1Superstars.value.some((id) => !id) ||
+            bookingTeam2Superstars.value.some((id) => !id)
+        ) {
+            alert(
+                'Verify competing entries exist within selected show roster limits.',
+            );
+
             return;
         }
 
-        const selectedIds = [...bookingTeam1Superstars.value, ...bookingTeam2Superstars.value].map(Number);
+        const selectedIds = [
+            ...bookingTeam1Superstars.value,
+            ...bookingTeam2Superstars.value,
+        ].map(Number);
         const uniqueIds = new Set(selectedIds);
+
         if (uniqueIds.size !== selectedIds.length) {
-            alert('An element cannot fight against its exact mirror clone instance entry.');
+            alert(
+                'An element cannot fight against its exact mirror clone instance entry.',
+            );
+
             return;
         }
 
         const getSuperstarsName = (ids: (number | string)[]) => {
-            return ids.map(id => props.superstars.find(s => s.id === Number(id))?.name || '').filter(Boolean).join(' & ');
+            return ids
+                .map(
+                    (id) =>
+                        props.superstars.find((s) => s.id === Number(id))
+                            ?.name || '',
+                )
+                .filter(Boolean)
+                .join(' & ');
         };
 
         comp1Name = getSuperstarsName(bookingTeam1Superstars.value);
@@ -729,59 +864,104 @@ const addMatchToStagingCard = () => {
         }
     } else {
         // Faction-based Team or Superstar Singles/Multi-man
-        if (!bookingComp1.value || !bookingComp2.value || (needComp3 && !bookingComp3.value) || (needComp4 && !bookingComp4.value)) {
-            alert('Verify competing entries exist within selected show roster limits.');
+        if (
+            !bookingComp1.value ||
+            !bookingComp2.value ||
+            (needComp3 && !bookingComp3.value) ||
+            (needComp4 && !bookingComp4.value)
+        ) {
+            alert(
+                'Verify competing entries exist within selected show roster limits.',
+            );
+
             return;
         }
 
-        const selectedIds = [Number(bookingComp1.value), Number(bookingComp2.value)];
-        if (needComp3) selectedIds.push(Number(bookingComp3.value));
-        if (needComp4) selectedIds.push(Number(bookingComp4.value));
+        const selectedIds = [
+            Number(bookingComp1.value),
+            Number(bookingComp2.value),
+        ];
+
+        if (needComp3) {
+            selectedIds.push(Number(bookingComp3.value));
+        }
+
+        if (needComp4) {
+            selectedIds.push(Number(bookingComp4.value));
+        }
 
         const uniqueIds = new Set(selectedIds);
+
         if (uniqueIds.size !== selectedIds.length) {
-            alert('An element cannot fight against its exact mirror clone instance entry.');
+            alert(
+                'An element cannot fight against its exact mirror clone instance entry.',
+            );
+
             return;
         }
 
         if (!isTeamMatchVal) {
-            const s1 = props.superstars.find((s) => s.id === Number(bookingComp1.value));
-            const s2 = props.superstars.find((s) => s.id === Number(bookingComp2.value));
+            const s1 = props.superstars.find(
+                (s) => s.id === Number(bookingComp1.value),
+            );
+            const s2 = props.superstars.find(
+                (s) => s.id === Number(bookingComp2.value),
+            );
             comp1Name = s1 ? s1.name : '';
             comp2Name = s2 ? s2.name : '';
             comp1Img = s1 ? s1.image : null;
             comp2Img = s2 ? s2.image : null;
 
             if (needComp3) {
-                const s3 = props.superstars.find((s) => s.id === Number(bookingComp3.value));
+                const s3 = props.superstars.find(
+                    (s) => s.id === Number(bookingComp3.value),
+                );
                 comp3Name = s3 ? s3.name : '';
                 comp3Img = s3 ? s3.image : null;
             }
+
             if (needComp4) {
-                const s4 = props.superstars.find((s) => s.id === Number(bookingComp4.value));
+                const s4 = props.superstars.find(
+                    (s) => s.id === Number(bookingComp4.value),
+                );
                 comp4Name = s4 ? s4.name : '';
                 comp4Img = s4 ? s4.image : null;
             }
         } else {
-            const t1 = props.teams.find((t) => t.id === Number(bookingComp1.value));
-            const t2 = props.teams.find((t) => t.id === Number(bookingComp2.value));
+            const t1 = props.teams.find(
+                (t) => t.id === Number(bookingComp1.value),
+            );
+            const t2 = props.teams.find(
+                (t) => t.id === Number(bookingComp2.value),
+            );
             comp1Name = t1 ? t1.name : '';
             comp2Name = t2 ? t2.name : '';
 
             if (needComp3) {
-                const t3 = props.teams.find((t) => t.id === Number(bookingComp3.value));
+                const t3 = props.teams.find(
+                    (t) => t.id === Number(bookingComp3.value),
+                );
                 comp3Name = t3 ? t3.name : '';
             }
+
             if (needComp4) {
-                const t4 = props.teams.find((t) => t.id === Number(bookingComp4.value));
+                const t4 = props.teams.find(
+                    (t) => t.id === Number(bookingComp4.value),
+                );
                 comp4Name = t4 ? t4.name : '';
             }
         }
 
         c1Id = Number(bookingComp1.value);
         c2Id = Number(bookingComp2.value);
-        if (needComp3) c3Id = Number(bookingComp3.value);
-        if (needComp4) c4Id = Number(bookingComp4.value);
+
+        if (needComp3) {
+            c3Id = Number(bookingComp3.value);
+        }
+
+        if (needComp4) {
+            c4Id = Number(bookingComp4.value);
+        }
 
         if (bookingOutcome.value === 'Decisive') {
             if (bookingWinner.value === '1') {
@@ -802,24 +982,38 @@ const addMatchToStagingCard = () => {
 
     let championshipId: string | number = 'NONE';
     let championshipName: string | null = null;
+
     if (bookingIsTitleMatch.value && bookingChampionshipId.value !== 'NONE') {
-        const champ = props.championships.find((c) => c.id === Number(bookingChampionshipId.value));
+        const champ = props.championships.find(
+            (c) => c.id === Number(bookingChampionshipId.value),
+        );
+
         if (champ) {
             const expectedType = isTeamMatchVal ? 'TagTeam' : 'Singles';
+
             if (champ.type !== expectedType) {
-                alert(`Championship Title type mismatch: Select a ${expectedType} title for this match.`);
+                alert(
+                    `Championship Title type mismatch: Select a ${expectedType} title for this match.`,
+                );
+
                 return;
             }
+
             if (isTeamMatchVal && !isFactionBasedVal) {
-                alert('Championship Title matches require pre-existing Factions (Teams) to challenge.');
+                alert(
+                    'Championship Title matches require pre-existing Factions (Teams) to challenge.',
+                );
+
                 return;
             }
+
             championshipId = champ.id;
             championshipName = champ.name;
         }
     }
 
     let stipulation = '';
+
     if (bookingStipulationType.value === 'CUSTOM') {
         stipulation = bookingCustomStipulation.value.trim();
     } else if (bookingStipulationType.value !== 'Normal') {
@@ -836,7 +1030,8 @@ const addMatchToStagingCard = () => {
         comp1Img,
         comp2Img,
         outcome: bookingOutcome.value,
-        winnerSlot: bookingOutcome.value === 'Decisive' ? bookingWinner.value : null,
+        winnerSlot:
+            bookingOutcome.value === 'Decisive' ? bookingWinner.value : null,
         winningId,
         winnerName,
         storylineId: bookingStoryline.value,
@@ -849,15 +1044,18 @@ const addMatchToStagingCard = () => {
         newStagedMatch.comp3Name = comp3Name;
         newStagedMatch.comp3Img = comp3Img;
     }
+
     if (needComp4) {
         newStagedMatch.c4Id = c4Id;
         newStagedMatch.comp4Name = comp4Name;
         newStagedMatch.comp4Img = comp4Img;
     }
+
     if (team1_superstar_ids && team2_superstar_ids) {
         newStagedMatch.team1_superstar_ids = team1_superstar_ids;
         newStagedMatch.team2_superstar_ids = team2_superstar_ids;
     }
+
     if (championshipId !== 'NONE') {
         newStagedMatch.championshipId = championshipId;
         newStagedMatch.championshipName = championshipName;
@@ -999,6 +1197,8 @@ function route(name: string, param?: string | number): string {
             return '/storylines';
         case 'booking.commit':
             return '/booking/commit';
+        case 'draft.commit':
+            return '/draft/commit';
         case 'universe.clear':
             return '/universe/clear';
         default:
@@ -1012,19 +1212,33 @@ const topSuperstars = computed(() => {
 
 // Championship status helper
 const getSuperstarChampionships = (superstarId: number) => {
-    const singles = props.championships.filter(c => c.champion_superstar_id === superstarId);
-    const tags = props.championships.filter(c => {
-        if (!c.champion_team_id) return false;
-        const team = props.teams.find(t => t.id === c.champion_team_id);
-        if (!team || !team.superstars) return false;
-        return team.superstars.some(member => member.id === superstarId);
+    const singles = props.championships.filter(
+        (c) => c.champion_superstar_id === superstarId,
+    );
+    const tags = props.championships.filter((c) => {
+        if (!c.champion_team_id) {
+            return false;
+        }
+
+        const team = props.teams.find((t) => t.id === c.champion_team_id);
+
+        if (!team || !team.superstars) {
+            return false;
+        }
+
+        return team.superstars.some((member) => member.id === superstarId);
     });
+
     return [...singles, ...tags];
 };
 
 // Clear Data Confirmation Handler
 const handleClearData = () => {
-    if (confirm("Are you absolutely sure you want to CLEAR all universe data? This will permanently delete all shows, superstars, teams, championships, storylines, and history logs. This action CANNOT be undone.")) {
+    if (
+        confirm(
+            'Are you absolutely sure you want to CLEAR all universe data? This will permanently delete all shows, superstars, teams, championships, storylines, and history logs. This action CANNOT be undone.',
+        )
+    ) {
         router.post(route('universe.clear'));
     }
 };
@@ -1034,10 +1248,219 @@ const filteredPaginatedSuperstars = computed(() => {
     if (filterRosterBrand.value === 'ALL') {
         return props.paginatedSuperstars.data;
     }
+
     return props.paginatedSuperstars.data.filter(
         (s) => s.show_id === Number(filterRosterBrand.value),
     );
 });
+
+// --- Superstar & Faction Draft Engine ---
+interface DraftItem {
+    id: string;
+    type: 'superstar' | 'faction';
+    name: string;
+    superstars: Superstar[];
+}
+
+const isDraftModalOpen = ref(false);
+const draftStage = ref(1); // 1: Setup, 2: Mode, 3: Execution, 4: Summary
+const draftSelectedShows = ref<number[]>([]);
+const draftEligibleSuperstars = ref<number[]>([]);
+const draftMode = ref<'manual' | 'random'>('manual');
+const draftPool = ref<DraftItem[]>([]);
+const draftResults = ref<Record<number, number>>({});
+const draftCurrentShowIndex = ref(0);
+const draftLogs = ref<string[]>([]);
+
+const openDraftModal = () => {
+    isDraftModalOpen.value = true;
+    draftStage.value = 1;
+    draftSelectedShows.value = props.shows
+        .filter((s) => !s.is_ple)
+        .map((s) => s.id);
+    draftEligibleSuperstars.value = props.superstars.map((s) => s.id);
+    draftMode.value = 'manual';
+    draftPool.value = [];
+    draftResults.value = {};
+    draftCurrentShowIndex.value = 0;
+    draftLogs.value = [];
+};
+
+const handleStartDraft = () => {
+    if (draftSelectedShows.value.length < 2) {
+        alert('Please select at least 2 shows to participate in the draft.');
+
+        return;
+    }
+
+    if (draftEligibleSuperstars.value.length === 0) {
+        alert('Please select at least one eligible superstar.');
+
+        return;
+    }
+
+    // Build Draft Pool
+    const eligibleSuperstars = props.superstars.filter((s) =>
+        draftEligibleSuperstars.value.includes(s.id),
+    );
+    const groupedSuperstarIds = new Set<number>();
+    const poolItems: DraftItem[] = [];
+
+    // Factions (Teams) containing at least one eligible superstar
+    props.teams.forEach((team) => {
+        const members = (team.superstars || []).filter((s) =>
+            draftEligibleSuperstars.value.includes(s.id),
+        );
+
+        if (members.length > 0) {
+            poolItems.push({
+                id: `faction-${team.id}`,
+                type: 'faction',
+                name: team.name,
+                superstars: members,
+            });
+            members.forEach((s) => groupedSuperstarIds.add(s.id));
+        }
+    });
+
+    // Individual Superstars not in any eligible faction
+    eligibleSuperstars.forEach((s) => {
+        if (!groupedSuperstarIds.has(s.id)) {
+            poolItems.push({
+                id: `superstar-${s.id}`,
+                type: 'superstar',
+                name: s.name,
+                superstars: [s],
+            });
+        }
+    });
+
+    draftPool.value = poolItems;
+    draftStage.value = 2;
+};
+
+const runDraftExecution = () => {
+    draftResults.value = {};
+    draftLogs.value = [];
+    draftCurrentShowIndex.value = 0;
+
+    if (draftMode.value === 'random') {
+        draftStage.value = 3;
+        const shuffled = [...draftPool.value].sort(() => Math.random() - 0.5);
+
+        const showAssignmentsCount: Record<number, number> = {};
+        draftSelectedShows.value.forEach((id) => {
+            showAssignmentsCount[id] = 0;
+        });
+
+        shuffled.forEach((item) => {
+            let minShowId = draftSelectedShows.value[0];
+            let minCount = showAssignmentsCount[minShowId];
+
+            draftSelectedShows.value.forEach((id) => {
+                if (showAssignmentsCount[id] < minCount) {
+                    minShowId = id;
+                    minCount = showAssignmentsCount[id];
+                }
+            });
+
+            const undrafted = item.superstars.filter(
+                (s) => draftResults.value[s.id] === undefined,
+            );
+
+            if (undrafted.length > 0) {
+                undrafted.forEach((s) => {
+                    draftResults.value[s.id] = minShowId;
+                });
+                showAssignmentsCount[minShowId] += undrafted.length;
+
+                const showName =
+                    props.shows.find((s) => s.id === minShowId)?.name ||
+                    'Unknown';
+
+                if (item.type === 'faction') {
+                    draftLogs.value.push(
+                        `Drafted faction ${item.name} (${undrafted.map((s) => s.name).join(', ')}) to ${showName}`,
+                    );
+                } else {
+                    draftLogs.value.push(`Drafted ${item.name} to ${showName}`);
+                }
+            }
+        });
+
+        draftStage.value = 4;
+    } else {
+        draftStage.value = 3;
+    }
+};
+
+const draftItemManual = (item: DraftItem) => {
+    const activeShowId = draftSelectedShows.value[draftCurrentShowIndex.value];
+    const showName =
+        props.shows.find((s) => s.id === activeShowId)?.name || 'Unknown';
+
+    const undrafted = item.superstars.filter(
+        (s) => draftResults.value[s.id] === undefined,
+    );
+
+    if (undrafted.length > 0) {
+        undrafted.forEach((s) => {
+            draftResults.value[s.id] = activeShowId;
+        });
+
+        if (item.type === 'faction') {
+            draftLogs.value.push(
+                `${showName} drafted faction ${item.name} (${undrafted.map((s) => s.name).join(', ')})`,
+            );
+        } else {
+            draftLogs.value.push(`${showName} drafted ${item.name}`);
+        }
+    }
+
+    draftPool.value = draftPool.value.filter((poolItem) => {
+        if (poolItem.id === item.id) {
+            return false;
+        }
+
+        if (poolItem.type === 'faction') {
+            const remainingUndrafted = poolItem.superstars.filter(
+                (s) => draftResults.value[s.id] === undefined,
+            );
+
+            return remainingUndrafted.length > 0;
+        }
+
+        return true;
+    });
+
+    if (draftPool.value.length === 0) {
+        draftStage.value = 4;
+    } else {
+        draftCurrentShowIndex.value =
+            (draftCurrentShowIndex.value + 1) % draftSelectedShows.value.length;
+    }
+};
+
+const handleSaveDraft = () => {
+    router.post(
+        route('draft.commit'),
+        {
+            draft: draftResults.value,
+        },
+        {
+            onSuccess: () => {
+                isDraftModalOpen.value = false;
+                toast.success('Draft roster updates committed successfully!');
+            },
+            onError: (err) => {
+                alert(
+                    'Failed to save draft results: ' +
+                        Object.values(err).join(', '),
+                );
+            },
+        },
+    );
+};
 </script>
 
 <template>
@@ -1063,10 +1486,18 @@ const filteredPaginatedSuperstars = computed(() => {
                         <h1
                             class="text-base leading-tight font-black text-white"
                         >
-                            {{ isReadOnly && owner ? `${owner.name}'s Universe` : 'Universe Tracker' }}
+                            {{
+                                isReadOnly && owner
+                                    ? `${owner.name}'s Universe`
+                                    : 'Universe Tracker'
+                            }}
                         </h1>
                         <p class="text-[10px] tracking-wide text-slate-400">
-                            {{ isReadOnly ? 'Public Read-Only View' : 'Elite Booking & Metrics engine' }}
+                            {{
+                                isReadOnly
+                                    ? 'Public Read-Only View'
+                                    : 'Elite Booking & Metrics engine'
+                            }}
                         </p>
                     </div>
                 </div>
@@ -1107,7 +1538,7 @@ const filteredPaginatedSuperstars = computed(() => {
                         </a>
                         <button
                             @click="handleClearData"
-                            class="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-rose-400 transition hover:bg-rose-950/20 hover:border-rose-900/60"
+                            class="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-rose-400 transition hover:border-rose-900/60 hover:bg-rose-950/20"
                         >
                             <Trash class="h-3.5 w-3.5" />
                             Clear Data
@@ -1180,6 +1611,7 @@ const filteredPaginatedSuperstars = computed(() => {
                     <BookOpen class="h-4 w-4" /> Storylines
                 </button>
                 <button
+                    v-if="!isReadOnly"
                     @click="switchTab('booking')"
                     :class="[
                         'flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold transition-all duration-300',
@@ -1419,59 +1851,125 @@ const filteredPaginatedSuperstars = computed(() => {
                                             v-if="m.championship"
                                             class="mr-1 inline-flex items-center gap-0.5 rounded bg-amber-400 px-1 py-0.5 text-[8px] font-black text-slate-950 uppercase"
                                         >
-                                            <Trophy class="h-1.5 w-1.5" /> {{ m.championship.name }}
+                                            <Trophy class="h-1.5 w-1.5" />
+                                            {{ m.championship.name }}
                                         </span>
                                         <span
                                             v-if="m.stipulation"
                                             class="mr-1 font-bold text-amber-400"
                                             >[{{ m.stipulation }}]</span
                                         >
-                                        <template v-if="m.team1_superstar_ids && m.team1_superstar_ids.length > 0">
-                                            <span class="text-slate-250 font-bold">{{
-                                                getSuperstarsFromIds(m.team1_superstar_ids).map(s => s.name).join(' & ')
-                                            }}</span>
+                                        <template
+                                            v-if="
+                                                m.team1_superstar_ids &&
+                                                m.team1_superstar_ids.length > 0
+                                            "
+                                        >
+                                            <span
+                                                class="text-slate-250 font-bold"
+                                                >{{
+                                                    getSuperstarsFromIds(
+                                                        m.team1_superstar_ids,
+                                                    )
+                                                        .map((s) => s.name)
+                                                        .join(' & ')
+                                                }}</span
+                                            >
                                             vs
-                                            <span class="text-slate-250 font-bold">{{
-                                                getSuperstarsFromIds(m.team2_superstar_ids).map(s => s.name).join(' & ')
-                                            }}</span>
+                                            <span
+                                                class="text-slate-250 font-bold"
+                                                >{{
+                                                    getSuperstarsFromIds(
+                                                        m.team2_superstar_ids,
+                                                    )
+                                                        .map((s) => s.name)
+                                                        .join(' & ')
+                                                }}</span
+                                            >
                                             <span
                                                 v-if="m.outcome === 'Decisive'"
                                                 class="ml-1 text-emerald-400"
                                                 >({{
                                                     m.winner_slot === '1'
-                                                        ? getSuperstarsFromIds(m.team1_superstar_ids).map(s => s.name).join(' & ')
-                                                        : getSuperstarsFromIds(m.team2_superstar_ids).map(s => s.name).join(' & ')
+                                                        ? getSuperstarsFromIds(
+                                                              m.team1_superstar_ids,
+                                                          )
+                                                              .map(
+                                                                  (s) => s.name,
+                                                              )
+                                                              .join(' & ')
+                                                        : getSuperstarsFromIds(
+                                                              m.team2_superstar_ids,
+                                                          )
+                                                              .map(
+                                                                  (s) => s.name,
+                                                              )
+                                                              .join(' & ')
                                                 }}
                                                 wins)</span
                                             >
-                                            <span v-else class="ml-1 text-amber-500"
+                                            <span
+                                                v-else
+                                                class="ml-1 text-amber-500"
                                                 >(Draw)</span
                                             >
                                         </template>
                                         <template v-else>
                                             <span class="text-slate-200">{{
-                                                ['Singles', 'TripleThreat', 'Fatal4Way'].includes(m.division)
+                                                [
+                                                    'Singles',
+                                                    'TripleThreat',
+                                                    'Fatal4Way',
+                                                ].includes(m.division)
                                                     ? m.c1_superstar?.name
                                                     : m.c1_team?.name
                                             }}</span>
                                             vs
                                             <span class="text-slate-200">{{
-                                                ['Singles', 'TripleThreat', 'Fatal4Way'].includes(m.division)
+                                                [
+                                                    'Singles',
+                                                    'TripleThreat',
+                                                    'Fatal4Way',
+                                                ].includes(m.division)
                                                     ? m.c2_superstar?.name
                                                     : m.c2_team?.name
                                             }}</span>
-                                            <template v-if="['TripleThreat', 'Fatal4Way', 'TripleThreatTag', 'Fatal4WayTag'].includes(m.division)">
+                                            <template
+                                                v-if="
+                                                    [
+                                                        'TripleThreat',
+                                                        'Fatal4Way',
+                                                        'TripleThreatTag',
+                                                        'Fatal4WayTag',
+                                                    ].includes(m.division)
+                                                "
+                                            >
                                                 vs
                                                 <span class="text-slate-200">{{
-                                                    ['Singles', 'TripleThreat', 'Fatal4Way'].includes(m.division)
+                                                    [
+                                                        'Singles',
+                                                        'TripleThreat',
+                                                        'Fatal4Way',
+                                                    ].includes(m.division)
                                                         ? m.c3_superstar?.name
                                                         : m.c3_team?.name
                                                 }}</span>
                                             </template>
-                                            <template v-if="['Fatal4Way', 'Fatal4WayTag'].includes(m.division)">
+                                            <template
+                                                v-if="
+                                                    [
+                                                        'Fatal4Way',
+                                                        'Fatal4WayTag',
+                                                    ].includes(m.division)
+                                                "
+                                            >
                                                 vs
                                                 <span class="text-slate-200">{{
-                                                    ['Singles', 'TripleThreat', 'Fatal4Way'].includes(m.division)
+                                                    [
+                                                        'Singles',
+                                                        'TripleThreat',
+                                                        'Fatal4Way',
+                                                    ].includes(m.division)
                                                         ? m.c4_superstar?.name
                                                         : m.c4_team?.name
                                                 }}</span>
@@ -1485,7 +1983,9 @@ const filteredPaginatedSuperstars = computed(() => {
                                                 }}
                                                 wins)</span
                                             >
-                                            <span v-else class="ml-1 text-amber-500"
+                                            <span
+                                                v-else
+                                                class="ml-1 text-amber-500"
                                                 >(Draw)</span
                                             >
                                         </template>
@@ -1505,6 +2005,7 @@ const filteredPaginatedSuperstars = computed(() => {
         >
             <!-- Create Show Form -->
             <div
+                v-if="!isReadOnly"
                 class="h-fit rounded-2xl border border-slate-800 bg-slate-900/60 p-5"
             >
                 <h3
@@ -1556,7 +2057,9 @@ const filteredPaginatedSuperstars = computed(() => {
                         </div>
                     </div>
                     <!-- PLE Switch Toggle -->
-                    <div class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+                    <div
+                        class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/60 p-3"
+                    >
                         <input
                             type="checkbox"
                             id="is_ple_checkbox"
@@ -1564,11 +2067,15 @@ const filteredPaginatedSuperstars = computed(() => {
                             class="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500 focus:ring-offset-slate-950 focus:outline-none"
                         />
                         <div class="flex flex-col">
-                            <label for="is_ple_checkbox" class="text-xs font-bold text-slate-200 cursor-pointer">
+                            <label
+                                for="is_ple_checkbox"
+                                class="cursor-pointer text-xs font-bold text-slate-200"
+                            >
                                 Premium Live Event (PLE) Show
                             </label>
-                            <span class="text-[9px] font-medium text-slate-505">
-                                Bypasses brand roster limits to book any superstar & title.
+                            <span class="text-slate-505 text-[9px] font-medium">
+                                Bypasses brand roster limits to book any
+                                superstar & title.
                             </span>
                         </div>
                     </div>
@@ -1597,7 +2104,10 @@ const filteredPaginatedSuperstars = computed(() => {
             </div>
 
             <!-- Configuration Grid -->
-            <div class="space-y-4 lg:col-span-2">
+            <div
+                class="space-y-4"
+                :class="isReadOnly ? 'lg:col-span-3' : 'lg:col-span-2'"
+            >
                 <h3
                     class="flex items-center gap-2 text-sm font-bold text-white"
                 >
@@ -1634,7 +2144,7 @@ const filteredPaginatedSuperstars = computed(() => {
                                     </h4>
                                     <span
                                         v-if="show.is_ple"
-                                        class="rounded bg-amber-400/10 border border-amber-400/20 px-1.5 py-0.5 text-[8px] font-black text-amber-450 uppercase tracking-wider"
+                                        class="text-amber-450 rounded border border-amber-400/20 bg-amber-400/10 px-1.5 py-0.5 text-[8px] font-black tracking-wider uppercase"
                                     >
                                         PLE
                                     </span>
@@ -1649,7 +2159,10 @@ const filteredPaginatedSuperstars = computed(() => {
                                     {{ show.color.toUpperCase() }}
                                 </p>
                             </div>
-                            <div class="flex items-center space-x-1">
+                            <div
+                                v-if="!isReadOnly"
+                                class="flex items-center space-x-1"
+                            >
                                 <button
                                     @click="startShowEdit(show)"
                                     class="p-2 text-slate-500 transition hover:text-amber-400"
@@ -1674,7 +2187,7 @@ const filteredPaginatedSuperstars = computed(() => {
             <!-- Roster Toolbar -->
             <div
                 class="grid grid-cols-1 gap-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-5"
-                :class="isReadOnly ? 'md:grid-cols-1' : 'md:grid-cols-2'"
+                :class="isReadOnly ? 'md:grid-cols-1' : 'md:grid-cols-3'"
             >
                 <!-- Excel Import -->
                 <div
@@ -1705,7 +2218,12 @@ const filteredPaginatedSuperstars = computed(() => {
                 </div>
 
                 <!-- Roster Filtering -->
-                <div class="flex flex-col justify-center">
+                <div
+                    class="flex flex-col justify-center"
+                    :class="{
+                        'md:border-r md:border-slate-800 md:pr-6': !isReadOnly,
+                    }"
+                >
                     <h3 class="mb-2 text-xs font-bold text-white">
                         Roster Brand Filtering
                     </h3>
@@ -1718,6 +2236,32 @@ const filteredPaginatedSuperstars = computed(() => {
                             {{ s.name }}
                         </option>
                     </select>
+                </div>
+
+                <!-- Perform Draft -->
+                <div
+                    v-if="!isReadOnly"
+                    class="flex flex-col justify-center border-t border-slate-800 pt-6 md:border-t-0 md:pt-0 md:pl-2"
+                >
+                    <h3
+                        class="mb-2 flex items-center gap-1.5 text-xs font-bold text-white"
+                    >
+                        <Sparkles class="h-4 w-4 text-amber-400" />
+                        Superstar & Faction Draft
+                    </h3>
+                    <p class="mb-4 text-[10px] text-slate-400">
+                        Initiate a draft cycle to shuffle superstars and
+                        factions between shows.
+                    </p>
+                    <div>
+                        <button
+                            @click="openDraftModal"
+                            class="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-bold text-slate-950 shadow transition-all hover:bg-amber-300"
+                        >
+                            <Sparkles class="h-4 w-4" />
+                            Perform Draft
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1784,7 +2328,9 @@ const filteredPaginatedSuperstars = computed(() => {
                                             Select Show
                                         </option>
                                         <option
-                                            v-for="sh in shows.filter(s => !s.is_ple)"
+                                            v-for="sh in shows.filter(
+                                                (s) => !s.is_ple,
+                                            )"
                                             :key="sh.id"
                                             :value="sh.id"
                                         >
@@ -1953,30 +2499,43 @@ const filteredPaginatedSuperstars = computed(() => {
                             v-else
                             data="paginatedSuperstars"
                             preserve-url
-                            class="max-h-[300px] overflow-y-auto pr-1 space-y-4"
+                            class="max-h-[300px] space-y-4 overflow-y-auto pr-1"
                         >
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div
                                     v-for="s in filteredPaginatedSuperstars"
                                     :key="s.id"
-                                    class="group relative flex items-center space-x-3.5 overflow-hidden rounded-xl bg-slate-900/60 p-3 transition-all duration-200 border"
+                                    class="group relative flex items-center space-x-3.5 overflow-hidden rounded-xl border bg-slate-900/60 p-3 transition-all duration-200"
                                     :class="[
-                                        getSuperstarChampionships(s.id).length > 0
+                                        getSuperstarChampionships(s.id).length >
+                                        0
                                             ? 'border-amber-500/80 shadow-md shadow-amber-500/5'
-                                            : 'border-slate-800'
+                                            : 'border-slate-800',
                                     ]"
                                 >
                                     <!-- Championship Tooltip on Hover -->
                                     <div
-                                        v-if="getSuperstarChampionships(s.id).length > 0"
-                                        class="pointer-events-none absolute left-[-1px] top-[-1px] w-[calc(100%+2px)] h-[calc(100%+2px)] z-20 flex items-center justify-center bg-slate-950/90 backdrop-blur-sm opacity-0 transition-all duration-200 group-hover:opacity-100"
+                                        v-if="
+                                            getSuperstarChampionships(s.id)
+                                                .length > 0
+                                        "
+                                        class="pointer-events-none absolute top-[-1px] left-[-1px] z-20 flex h-[calc(100%+2px)] w-[calc(100%+2px)] items-center justify-center bg-slate-950/90 opacity-0 backdrop-blur-sm transition-all duration-200 group-hover:opacity-100"
                                     >
-                                        <div class="text-center px-3">
-                                            <div class="flex items-center justify-center gap-1 text-[10px] font-bold text-amber-400 uppercase tracking-wider mb-1.5">
-                                                <Trophy class="h-3 w-3" /> Current Titles
+                                        <div class="px-3 text-center">
+                                            <div
+                                                class="mb-1.5 flex items-center justify-center gap-1 text-[10px] font-bold tracking-wider text-amber-400 uppercase"
+                                            >
+                                                <Trophy class="h-3 w-3" />
+                                                Current Titles
                                             </div>
                                             <ul class="space-y-1">
-                                                <li v-for="c in getSuperstarChampionships(s.id)" :key="c.id" class="text-[10px] font-semibold text-slate-200 truncate">
+                                                <li
+                                                    v-for="c in getSuperstarChampionships(
+                                                        s.id,
+                                                    )"
+                                                    :key="c.id"
+                                                    class="truncate text-[10px] font-semibold text-slate-200"
+                                                >
                                                     {{ c.name }}
                                                 </li>
                                             </ul>
@@ -2007,7 +2566,9 @@ const filteredPaginatedSuperstars = computed(() => {
                                             }"
                                         >
                                             {{
-                                                s.show ? s.show.name : 'Independent'
+                                                s.show
+                                                    ? s.show.name
+                                                    : 'Independent'
                                             }}
                                         </p>
                                         <div
@@ -2022,7 +2583,10 @@ const filteredPaginatedSuperstars = computed(() => {
                                             <span>D: {{ s.draws }}</span>
                                         </div>
                                     </div>
-                                    <div v-if="!isReadOnly" class="flex space-x-0.5">
+                                    <div
+                                        v-if="!isReadOnly"
+                                        class="flex space-x-0.5"
+                                    >
                                         <button
                                             @click="startSuperstarEdit(s)"
                                             class="p-1.5 text-slate-500 transition hover:text-amber-400"
@@ -2039,7 +2603,9 @@ const filteredPaginatedSuperstars = computed(() => {
                                 </div>
                             </div>
                             <template #loading>
-                                <div class="py-2 text-center text-[10px] font-bold text-slate-400 animate-pulse">
+                                <div
+                                    class="animate-pulse py-2 text-center text-[10px] font-bold text-slate-400"
+                                >
                                     Loading more combatants...
                                 </div>
                             </template>
@@ -2064,7 +2630,7 @@ const filteredPaginatedSuperstars = computed(() => {
                             v-else
                             data="paginatedTeams"
                             preserve-url
-                            class="max-h-[300px] overflow-y-auto pr-1 space-y-4"
+                            class="max-h-[300px] space-y-4 overflow-y-auto pr-1"
                         >
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div
@@ -2072,7 +2638,9 @@ const filteredPaginatedSuperstars = computed(() => {
                                     :key="t.id"
                                     class="group relative space-y-1.5 rounded-xl border border-slate-800 bg-slate-900/60 p-3.5"
                                 >
-                                    <div class="flex items-start justify-between">
+                                    <div
+                                        class="flex items-start justify-between"
+                                    >
                                         <h4
                                             class="truncate text-xs font-black text-amber-400"
                                         >
@@ -2088,7 +2656,9 @@ const filteredPaginatedSuperstars = computed(() => {
                                     </div>
                                     <p class="text-[10px] text-slate-300">
                                         Members:
-                                        <span class="font-normal text-slate-400">
+                                        <span
+                                            class="font-normal text-slate-400"
+                                        >
                                             {{
                                                 t.superstars
                                                     ? t.superstars
@@ -2114,7 +2684,9 @@ const filteredPaginatedSuperstars = computed(() => {
                                 </div>
                             </div>
                             <template #loading>
-                                <div class="py-2 text-center text-[10px] font-bold text-slate-400 animate-pulse">
+                                <div
+                                    class="animate-pulse py-2 text-center text-[10px] font-bold text-slate-400"
+                                >
                                     Loading more alignments...
                                 </div>
                             </template>
@@ -2185,9 +2757,7 @@ const filteredPaginatedSuperstars = computed(() => {
                                 required
                                 class="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white focus:border-amber-400 focus:outline-none"
                             >
-                                <option value="" disabled>
-                                    Select Show
-                                </option>
+                                <option value="" disabled>Select Show</option>
                                 <option
                                     v-for="s in shows"
                                     :key="s.id"
@@ -2325,7 +2895,7 @@ const filteredPaginatedSuperstars = computed(() => {
                                 <button
                                     @click="startChampionshipEdit(ch)"
                                     class="text-slate-505 p-1.5 transition hover:text-amber-400"
-                                  >
+                                >
                                     <Pencil class="h-3.5 w-3.5" />
                                 </button>
                                 <button
@@ -2383,7 +2953,9 @@ const filteredPaginatedSuperstars = computed(() => {
                     </form>
                 </div>
 
-                <div :class="isReadOnly ? '' : 'border-t border-slate-800 pt-5'">
+                <div
+                    :class="isReadOnly ? '' : 'border-t border-slate-800 pt-5'"
+                >
                     <label
                         class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
                         >Select Storyline to View Timeline</label
@@ -2568,9 +3140,7 @@ const filteredPaginatedSuperstars = computed(() => {
                             <option value="Singles">
                                 1 vs 1 Singles Action
                             </option>
-                            <option value="TagTeam">
-                                Tag Team (2 vs 2)
-                            </option>
+                            <option value="TagTeam">Tag Team (2 vs 2)</option>
                             <option value="TripleThreat">
                                 Triple Threat (3-Way Singles)
                             </option>
@@ -2596,8 +3166,19 @@ const filteredPaginatedSuperstars = computed(() => {
                     </div>
 
                     <!-- Team Type Selector (only for TagTeam, ThreeOnThreeTag, FourOnFourTag) -->
-                    <div v-if="['TagTeam', 'ThreeOnThreeTag', 'FourOnFourTag'].includes(bookingMatchType)">
-                        <label class="mb-1.5 block text-[10px] font-bold tracking-wider text-slate-450 uppercase">Tag Team Booking Mode</label>
+                    <div
+                        v-if="
+                            [
+                                'TagTeam',
+                                'ThreeOnThreeTag',
+                                'FourOnFourTag',
+                            ].includes(bookingMatchType)
+                        "
+                    >
+                        <label
+                            class="text-slate-450 mb-1.5 block text-[10px] font-bold tracking-wider uppercase"
+                            >Tag Team Booking Mode</label
+                        >
                         <div class="grid grid-cols-2 gap-2">
                             <button
                                 type="button"
@@ -2606,7 +3187,7 @@ const filteredPaginatedSuperstars = computed(() => {
                                     'rounded-xl border px-3 py-2 text-xs font-bold transition-all',
                                     bookingTagTeamType === 'Faction'
                                         ? 'border-amber-400 bg-amber-400/10 text-amber-400'
-                                        : 'border-slate-800 bg-slate-950 text-slate-450 hover:border-slate-700'
+                                        : 'text-slate-450 border-slate-800 bg-slate-950 hover:border-slate-700',
                                 ]"
                             >
                                 Factions (Teams)
@@ -2618,7 +3199,7 @@ const filteredPaginatedSuperstars = computed(() => {
                                     'rounded-xl border px-3 py-2 text-xs font-bold transition-all',
                                     bookingTagTeamType === 'AdHoc'
                                         ? 'border-amber-400 bg-amber-400/10 text-amber-400'
-                                        : 'border-slate-800 bg-slate-950 text-slate-450 hover:border-slate-700'
+                                        : 'text-slate-450 border-slate-800 bg-slate-950 hover:border-slate-700',
                                 ]"
                             >
                                 Ad-Hoc Superstars
@@ -2647,7 +3228,12 @@ const filteredPaginatedSuperstars = computed(() => {
                     </div>
 
                     <!-- Freetype Custom Stipulation description input -->
-                    <div v-if="bookingMatchType !== 'Segment' && bookingStipulationType === 'CUSTOM'">
+                    <div
+                        v-if="
+                            bookingMatchType !== 'Segment' &&
+                            bookingStipulationType === 'CUSTOM'
+                        "
+                    >
                         <label
                             class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
                             >Custom Stipulation Description</label
@@ -2663,33 +3249,88 @@ const filteredPaginatedSuperstars = computed(() => {
                     <!-- Competitors Grid Inputs -->
                     <div v-if="bookingMatchType !== 'Segment'">
                         <!-- Ad-Hoc Tag Team / 3-on-3 Tag / 4-on-4 Tag Superstar Selection Grid -->
-                        <div v-if="isTeamMatch && !isFactionBased" class="space-y-4">
+                        <div
+                            v-if="isTeamMatch && !isFactionBased"
+                            class="space-y-4"
+                        >
                             <!-- Team 1 (Blue Corner) -->
-                            <div class="space-y-2 rounded-xl border border-slate-800 bg-slate-950/70 p-3">
-                                <h5 class="text-[9px] font-black tracking-wider text-blue-400 uppercase">Team 1 / Blue Corner</h5>
-                                <div v-for="idx in (bookingMatchType === 'TagTeam' ? 2 : (bookingMatchType === 'ThreeOnThreeTag' ? 3 : 4))" :key="'t1-s-' + idx">
-                                    <label class="mb-0.5 block text-[8px] font-bold text-slate-500 uppercase">Team 1 Member #{{ idx }}</label>
-                                    <select
-                                        v-model="bookingTeam1Superstars[idx - 1]"
-                                        class="w-full rounded-lg border border-slate-850 bg-slate-900 px-3 py-1.5 text-xs text-white focus:border-amber-400 focus:outline-none"
+                            <div
+                                class="space-y-2 rounded-xl border border-slate-800 bg-slate-950/70 p-3"
+                            >
+                                <h5
+                                    class="text-[9px] font-black tracking-wider text-blue-400 uppercase"
+                                >
+                                    Team 1 / Blue Corner
+                                </h5>
+                                <div
+                                    v-for="idx in bookingMatchType === 'TagTeam'
+                                        ? 2
+                                        : bookingMatchType === 'ThreeOnThreeTag'
+                                          ? 3
+                                          : 4"
+                                    :key="'t1-s-' + idx"
+                                >
+                                    <label
+                                        class="mb-0.5 block text-[8px] font-bold text-slate-500 uppercase"
+                                        >Team 1 Member #{{ idx }}</label
                                     >
-                                        <option value="" disabled>Select Superstar</option>
-                                        <option v-for="s in bookingCompetitors1" :key="s.id" :value="s.id">{{ s.name }}</option>
+                                    <select
+                                        v-model="
+                                            bookingTeam1Superstars[idx - 1]
+                                        "
+                                        class="border-slate-850 w-full rounded-lg border bg-slate-900 px-3 py-1.5 text-xs text-white focus:border-amber-400 focus:outline-none"
+                                    >
+                                        <option value="" disabled>
+                                            Select Superstar
+                                        </option>
+                                        <option
+                                            v-for="s in bookingCompetitors1"
+                                            :key="s.id"
+                                            :value="s.id"
+                                        >
+                                            {{ s.name }}
+                                        </option>
                                     </select>
                                 </div>
                             </div>
 
                             <!-- Team 2 (Red Corner) -->
-                            <div class="space-y-2 rounded-xl border border-slate-800 bg-slate-950/70 p-3">
-                                <h5 class="text-[9px] font-black tracking-wider text-rose-400 uppercase">Team 2 / Red Corner</h5>
-                                <div v-for="idx in (bookingMatchType === 'TagTeam' ? 2 : (bookingMatchType === 'ThreeOnThreeTag' ? 3 : 4))" :key="'t2-s-' + idx">
-                                    <label class="mb-0.5 block text-[8px] font-bold text-slate-500 uppercase">Team 2 Member #{{ idx }}</label>
-                                    <select
-                                        v-model="bookingTeam2Superstars[idx - 1]"
-                                        class="w-full rounded-lg border border-slate-850 bg-slate-900 px-3 py-1.5 text-xs text-white focus:border-amber-400 focus:outline-none"
+                            <div
+                                class="space-y-2 rounded-xl border border-slate-800 bg-slate-950/70 p-3"
+                            >
+                                <h5
+                                    class="text-[9px] font-black tracking-wider text-rose-400 uppercase"
+                                >
+                                    Team 2 / Red Corner
+                                </h5>
+                                <div
+                                    v-for="idx in bookingMatchType === 'TagTeam'
+                                        ? 2
+                                        : bookingMatchType === 'ThreeOnThreeTag'
+                                          ? 3
+                                          : 4"
+                                    :key="'t2-s-' + idx"
+                                >
+                                    <label
+                                        class="mb-0.5 block text-[8px] font-bold text-slate-500 uppercase"
+                                        >Team 2 Member #{{ idx }}</label
                                     >
-                                        <option value="" disabled>Select Superstar</option>
-                                        <option v-for="s in bookingCompetitors1" :key="s.id" :value="s.id">{{ s.name }}</option>
+                                    <select
+                                        v-model="
+                                            bookingTeam2Superstars[idx - 1]
+                                        "
+                                        class="border-slate-850 w-full rounded-lg border bg-slate-900 px-3 py-1.5 text-xs text-white focus:border-amber-400 focus:outline-none"
+                                    >
+                                        <option value="" disabled>
+                                            Select Superstar
+                                        </option>
+                                        <option
+                                            v-for="s in bookingCompetitors1"
+                                            :key="s.id"
+                                            :value="s.id"
+                                        >
+                                            {{ s.name }}
+                                        </option>
                                     </select>
                                 </div>
                             </div>
@@ -2752,7 +3393,16 @@ const filteredPaginatedSuperstars = computed(() => {
                                 </select>
                             </div>
                             <!-- Competitor 3 (Triple Threat or Fatal 4-Way Factions/Superstars) -->
-                            <div v-if="['TripleThreat', 'TripleThreatTag', 'Fatal4Way', 'Fatal4WayTag'].includes(bookingMatchType)">
+                            <div
+                                v-if="
+                                    [
+                                        'TripleThreat',
+                                        'TripleThreatTag',
+                                        'Fatal4Way',
+                                        'Fatal4WayTag',
+                                    ].includes(bookingMatchType)
+                                "
+                            >
                                 <label
                                     class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
                                 >
@@ -2779,7 +3429,13 @@ const filteredPaginatedSuperstars = computed(() => {
                                 </select>
                             </div>
                             <!-- Competitor 4 (Fatal 4-Way Factions/Superstars only) -->
-                            <div v-if="['Fatal4Way', 'Fatal4WayTag'].includes(bookingMatchType)">
+                            <div
+                                v-if="
+                                    ['Fatal4Way', 'Fatal4WayTag'].includes(
+                                        bookingMatchType,
+                                    )
+                                "
+                            >
                                 <label
                                     class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
                                 >
@@ -2808,7 +3464,10 @@ const filteredPaginatedSuperstars = computed(() => {
                         </div>
                     </div>
 
-                    <div v-if="bookingMatchType !== 'Segment'" class="grid grid-cols-2 gap-2">
+                    <div
+                        v-if="bookingMatchType !== 'Segment'"
+                        class="grid grid-cols-2 gap-2"
+                    >
                         <div>
                             <label
                                 class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
@@ -2836,21 +3495,58 @@ const filteredPaginatedSuperstars = computed(() => {
                                 class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-white focus:border-amber-400 focus:outline-none"
                             >
                                 <option value="1">
-                                    {{ (isTeamMatch && !isFactionBased) ? 'Team 1 (Blue Corner)' : 'Competitor 1 (Blue)' }}
+                                    {{
+                                        isTeamMatch && !isFactionBased
+                                            ? 'Team 1 (Blue Corner)'
+                                            : 'Competitor 1 (Blue)'
+                                    }}
                                 </option>
                                 <option value="2">
-                                    {{ (isTeamMatch && !isFactionBased) ? 'Team 2 (Red Corner)' : 'Competitor 2 (Red)' }}
+                                    {{
+                                        isTeamMatch && !isFactionBased
+                                            ? 'Team 2 (Red Corner)'
+                                            : 'Competitor 2 (Red)'
+                                    }}
                                 </option>
-                                <option v-if="!isTeamMatch && ['TripleThreat', 'Fatal4Way'].includes(bookingMatchType)" value="3">
+                                <option
+                                    v-if="
+                                        !isTeamMatch &&
+                                        ['TripleThreat', 'Fatal4Way'].includes(
+                                            bookingMatchType,
+                                        )
+                                    "
+                                    value="3"
+                                >
                                     Competitor 3 (Purple)
                                 </option>
-                                <option v-if="!isTeamMatch && bookingMatchType === 'Fatal4Way'" value="4">
+                                <option
+                                    v-if="
+                                        !isTeamMatch &&
+                                        bookingMatchType === 'Fatal4Way'
+                                    "
+                                    value="4"
+                                >
                                     Competitor 4 (Green)
                                 </option>
-                                <option v-if="isFactionBased && ['TripleThreatTag', 'Fatal4WayTag'].includes(bookingMatchType)" value="3">
+                                <option
+                                    v-if="
+                                        isFactionBased &&
+                                        [
+                                            'TripleThreatTag',
+                                            'Fatal4WayTag',
+                                        ].includes(bookingMatchType)
+                                    "
+                                    value="3"
+                                >
                                     Competitor 3 (Purple)
                                 </option>
-                                <option v-if="isFactionBased && bookingMatchType === 'Fatal4WayTag'" value="4">
+                                <option
+                                    v-if="
+                                        isFactionBased &&
+                                        bookingMatchType === 'Fatal4WayTag'
+                                    "
+                                    value="4"
+                                >
                                     Competitor 4 (Green)
                                 </option>
                             </select>
@@ -2863,16 +3559,16 @@ const filteredPaginatedSuperstars = computed(() => {
                     >
                         <!-- Championship match parameters -->
                         <div v-if="bookingMatchType !== 'Segment'">
-                            <div class="flex items-center gap-2 mb-1.5">
+                            <div class="mb-1.5 flex items-center gap-2">
                                 <input
                                     type="checkbox"
                                     id="isTitleMatch"
                                     v-model="bookingIsTitleMatch"
-                                    class="rounded border-slate-800 bg-slate-900 text-amber-400 focus:ring-amber-500/30 focus:ring-offset-0 h-4 w-4"
+                                    class="h-4 w-4 rounded border-slate-800 bg-slate-900 text-amber-400 focus:ring-amber-500/30 focus:ring-offset-0"
                                 />
                                 <label
                                     for="isTitleMatch"
-                                    class="text-[10px] font-bold tracking-wider text-amber-400 uppercase cursor-pointer"
+                                    class="cursor-pointer text-[10px] font-bold tracking-wider text-amber-400 uppercase"
                                     >Championship Title Match</label
                                 >
                             </div>
@@ -3020,9 +3716,10 @@ const filteredPaginatedSuperstars = computed(() => {
                                     <template v-else>
                                         <span
                                             v-if="m.championshipName"
-                                            class="mr-1 inline-flex items-center gap-1 rounded bg-amber-400 px-1.5 py-0.5 text-[8px] font-black text-slate-950 uppercase tracking-wider"
+                                            class="mr-1 inline-flex items-center gap-1 rounded bg-amber-400 px-1.5 py-0.5 text-[8px] font-black tracking-wider text-slate-950 uppercase"
                                         >
-                                            <Trophy class="h-2 w-2" /> {{ m.championshipName }}
+                                            <Trophy class="h-2 w-2" />
+                                            {{ m.championshipName }}
                                         </span>
                                         <span
                                             v-if="m.stipulation"
@@ -3036,11 +3733,17 @@ const filteredPaginatedSuperstars = computed(() => {
                                         >
                                         {{ m.comp2Name }}
                                         <template v-if="m.comp3Name">
-                                            <span class="px-1 font-black text-amber-400">VS</span>
+                                            <span
+                                                class="px-1 font-black text-amber-400"
+                                                >VS</span
+                                            >
                                             {{ m.comp3Name }}
                                         </template>
                                         <template v-if="m.comp4Name">
-                                            <span class="px-1 font-black text-amber-400">VS</span>
+                                            <span
+                                                class="px-1 font-black text-amber-400"
+                                                >VS</span
+                                            >
                                             {{ m.comp4Name }}
                                         </template>
                                     </template>
@@ -3130,9 +3833,11 @@ const filteredPaginatedSuperstars = computed(() => {
                             </h2>
                             <span
                                 v-if="activeMatchPreview.championshipName"
-                                class="mt-1 inline-flex items-center gap-1 rounded bg-amber-400 px-2 py-0.5 text-[9px] font-black text-slate-950 uppercase tracking-widest"
+                                class="mt-1 inline-flex items-center gap-1 rounded bg-amber-400 px-2 py-0.5 text-[9px] font-black tracking-widest text-slate-950 uppercase"
                             >
-                                <Trophy class="h-3 w-3" /> {{ activeMatchPreview.championshipName }} Championship Match
+                                <Trophy class="h-3 w-3" />
+                                {{ activeMatchPreview.championshipName }}
+                                Championship Match
                             </span>
                             <span
                                 v-if="activeMatchPreview.stipulation"
@@ -3160,144 +3865,317 @@ const filteredPaginatedSuperstars = computed(() => {
                         </div>
 
                         <!-- Match VS layout -->
-                        <div
-                            v-else
-                            class="z-10 my-4 w-full"
-                        >
+                        <div v-else class="z-10 my-4 w-full">
                             <!-- Ad-Hoc / Multi-Man Tag Team Layout (6-man or 8-man) -->
-                            <div v-if="activeMatchPreview.team1_superstar_ids" class="grid grid-cols-7 gap-2 items-center w-full">
+                            <div
+                                v-if="activeMatchPreview.team1_superstar_ids"
+                                class="grid w-full grid-cols-7 items-center gap-2"
+                            >
                                 <!-- Team 1 -->
-                                <div class="col-span-3 flex flex-col items-center space-y-2">
-                                    <div class="flex flex-wrap justify-center gap-1.5 max-w-[150px]">
-                                        <div v-for="s in getSuperstarsFromIds(activeMatchPreview.team1_superstar_ids)" :key="s.id" class="relative group">
+                                <div
+                                    class="col-span-3 flex flex-col items-center space-y-2"
+                                >
+                                    <div
+                                        class="flex max-w-[150px] flex-wrap justify-center gap-1.5"
+                                    >
+                                        <div
+                                            v-for="s in getSuperstarsFromIds(
+                                                activeMatchPreview.team1_superstar_ids,
+                                            )"
+                                            :key="s.id"
+                                            class="group relative"
+                                        >
                                             <img
-                                                :src="s.image || FALLBACK_USER_IMG"
+                                                :src="
+                                                    s.image || FALLBACK_USER_IMG
+                                                "
                                                 class="h-10 w-10 rounded-full border bg-slate-950 object-cover shadow-sm transition hover:scale-105"
-                                                :style="{ borderColor: selectedBookingShow ? selectedBookingShow.color : '#475569' }"
+                                                :style="{
+                                                    borderColor:
+                                                        selectedBookingShow
+                                                            ? selectedBookingShow.color
+                                                            : '#475569',
+                                                }"
                                             />
                                         </div>
                                     </div>
-                                    <h3 class="text-[10px] font-black tracking-wide text-white uppercase text-center max-w-[120px] line-clamp-2">
+                                    <h3
+                                        class="line-clamp-2 max-w-[120px] text-center text-[10px] font-black tracking-wide text-white uppercase"
+                                    >
                                         {{ activeMatchPreview.comp1Name }}
                                     </h3>
                                 </div>
 
                                 <!-- VS divider -->
-                                <div class="col-span-1 flex flex-col items-center justify-center">
-                                    <span class="via-yellow-450 to-amber-550 bg-gradient-to-b from-amber-300 bg-clip-text text-xl font-black tracking-tighter text-transparent italic drop-shadow sm:text-2xl">VS</span>
+                                <div
+                                    class="col-span-1 flex flex-col items-center justify-center"
+                                >
+                                    <span
+                                        class="via-yellow-450 to-amber-550 bg-gradient-to-b from-amber-300 bg-clip-text text-xl font-black tracking-tighter text-transparent italic drop-shadow sm:text-2xl"
+                                        >VS</span
+                                    >
                                 </div>
 
                                 <!-- Team 2 -->
-                                <div class="col-span-3 flex flex-col items-center space-y-2">
-                                    <div class="flex flex-wrap justify-center gap-1.5 max-w-[150px]">
-                                        <div v-for="s in getSuperstarsFromIds(activeMatchPreview.team2_superstar_ids)" :key="s.id" class="relative group">
+                                <div
+                                    class="col-span-3 flex flex-col items-center space-y-2"
+                                >
+                                    <div
+                                        class="flex max-w-[150px] flex-wrap justify-center gap-1.5"
+                                    >
+                                        <div
+                                            v-for="s in getSuperstarsFromIds(
+                                                activeMatchPreview.team2_superstar_ids,
+                                            )"
+                                            :key="s.id"
+                                            class="group relative"
+                                        >
                                             <img
-                                                :src="s.image || FALLBACK_USER_IMG"
+                                                :src="
+                                                    s.image || FALLBACK_USER_IMG
+                                                "
                                                 class="h-10 w-10 rounded-full border bg-slate-950 object-cover shadow-sm transition hover:scale-105"
-                                                :style="{ borderColor: selectedBookingShow ? selectedBookingShow.color : '#475569' }"
+                                                :style="{
+                                                    borderColor:
+                                                        selectedBookingShow
+                                                            ? selectedBookingShow.color
+                                                            : '#475569',
+                                                }"
                                             />
                                         </div>
                                     </div>
-                                    <h3 class="text-[10px] font-black tracking-wide text-white uppercase text-center max-w-[120px] line-clamp-2">
+                                    <h3
+                                        class="line-clamp-2 max-w-[120px] text-center text-[10px] font-black tracking-wide text-white uppercase"
+                                    >
                                         {{ activeMatchPreview.comp2Name }}
                                     </h3>
                                 </div>
                             </div>
 
                             <!-- Triple Threat (3-Way) Layout -->
-                            <div v-else-if="['TripleThreat', 'TripleThreatTag'].includes(activeMatchPreview.division)" class="grid grid-cols-3 gap-3 items-center text-center">
+                            <div
+                                v-else-if="
+                                    [
+                                        'TripleThreat',
+                                        'TripleThreatTag',
+                                    ].includes(activeMatchPreview.division)
+                                "
+                                class="grid grid-cols-3 items-center gap-3 text-center"
+                            >
                                 <!-- Comp 1 -->
-                                <div class="flex flex-col items-center space-y-1.5">
+                                <div
+                                    class="flex flex-col items-center space-y-1.5"
+                                >
                                     <div class="relative">
-                                        <div class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"></div>
+                                        <div
+                                            class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"
+                                        ></div>
                                         <img
-                                            :src="activeMatchPreview.comp1Img || FALLBACK_USER_IMG"
+                                            :src="
+                                                activeMatchPreview.comp1Img ||
+                                                FALLBACK_USER_IMG
+                                            "
                                             class="h-16 w-16 rounded-xl border-2 bg-slate-950 object-cover shadow-md"
-                                            :style="{ borderColor: selectedBookingShow ? selectedBookingShow.color : '#475569' }"
+                                            :style="{
+                                                borderColor: selectedBookingShow
+                                                    ? selectedBookingShow.color
+                                                    : '#475569',
+                                            }"
                                         />
                                     </div>
-                                    <span class="text-[10px] font-bold text-white uppercase truncate max-w-[80px]">{{ activeMatchPreview.comp1Name }}</span>
+                                    <span
+                                        class="max-w-[80px] truncate text-[10px] font-bold text-white uppercase"
+                                        >{{
+                                            activeMatchPreview.comp1Name
+                                        }}</span
+                                    >
                                 </div>
                                 <!-- Comp 2 -->
-                                <div class="flex flex-col items-center space-y-1.5">
+                                <div
+                                    class="flex flex-col items-center space-y-1.5"
+                                >
                                     <div class="relative">
-                                        <div class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"></div>
+                                        <div
+                                            class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"
+                                        ></div>
                                         <img
-                                            :src="activeMatchPreview.comp2Img || FALLBACK_USER_IMG"
+                                            :src="
+                                                activeMatchPreview.comp2Img ||
+                                                FALLBACK_USER_IMG
+                                            "
                                             class="h-16 w-16 rounded-xl border-2 bg-slate-950 object-cover shadow-md"
-                                            :style="{ borderColor: selectedBookingShow ? selectedBookingShow.color : '#475569' }"
+                                            :style="{
+                                                borderColor: selectedBookingShow
+                                                    ? selectedBookingShow.color
+                                                    : '#475569',
+                                            }"
                                         />
                                     </div>
-                                    <span class="text-[10px] font-bold text-white uppercase truncate max-w-[80px]">{{ activeMatchPreview.comp2Name }}</span>
+                                    <span
+                                        class="max-w-[80px] truncate text-[10px] font-bold text-white uppercase"
+                                        >{{
+                                            activeMatchPreview.comp2Name
+                                        }}</span
+                                    >
                                 </div>
                                 <!-- Comp 3 -->
-                                <div class="flex flex-col items-center space-y-1.5">
+                                <div
+                                    class="flex flex-col items-center space-y-1.5"
+                                >
                                     <div class="relative">
-                                        <div class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"></div>
+                                        <div
+                                            class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"
+                                        ></div>
                                         <img
-                                            :src="activeMatchPreview.comp3Img || FALLBACK_USER_IMG"
+                                            :src="
+                                                activeMatchPreview.comp3Img ||
+                                                FALLBACK_USER_IMG
+                                            "
                                             class="h-16 w-16 rounded-xl border-2 bg-slate-950 object-cover shadow-md"
-                                            :style="{ borderColor: selectedBookingShow ? selectedBookingShow.color : '#475569' }"
+                                            :style="{
+                                                borderColor: selectedBookingShow
+                                                    ? selectedBookingShow.color
+                                                    : '#475569',
+                                            }"
                                         />
                                     </div>
-                                    <span class="text-[10px] font-bold text-white uppercase truncate max-w-[80px]">{{ activeMatchPreview.comp3Name }}</span>
+                                    <span
+                                        class="max-w-[80px] truncate text-[10px] font-bold text-white uppercase"
+                                        >{{
+                                            activeMatchPreview.comp3Name
+                                        }}</span
+                                    >
                                 </div>
                             </div>
 
                             <!-- Fatal 4-Way (4-Way) Layout -->
-                            <div v-else-if="['Fatal4Way', 'Fatal4WayTag'].includes(activeMatchPreview.division)" class="grid grid-cols-4 gap-2 items-center text-center">
+                            <div
+                                v-else-if="
+                                    ['Fatal4Way', 'Fatal4WayTag'].includes(
+                                        activeMatchPreview.division,
+                                    )
+                                "
+                                class="grid grid-cols-4 items-center gap-2 text-center"
+                            >
                                 <!-- Comp 1 -->
-                                <div class="flex flex-col items-center space-y-1.5">
+                                <div
+                                    class="flex flex-col items-center space-y-1.5"
+                                >
                                     <div class="relative">
-                                        <div class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"></div>
+                                        <div
+                                            class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"
+                                        ></div>
                                         <img
-                                            :src="activeMatchPreview.comp1Img || FALLBACK_USER_IMG"
+                                            :src="
+                                                activeMatchPreview.comp1Img ||
+                                                FALLBACK_USER_IMG
+                                            "
                                             class="h-14 w-14 rounded-xl border-2 bg-slate-950 object-cover shadow-md"
-                                            :style="{ borderColor: selectedBookingShow ? selectedBookingShow.color : '#475569' }"
+                                            :style="{
+                                                borderColor: selectedBookingShow
+                                                    ? selectedBookingShow.color
+                                                    : '#475569',
+                                            }"
                                         />
                                     </div>
-                                    <span class="text-[9px] font-bold text-white uppercase truncate max-w-[70px]">{{ activeMatchPreview.comp1Name }}</span>
+                                    <span
+                                        class="max-w-[70px] truncate text-[9px] font-bold text-white uppercase"
+                                        >{{
+                                            activeMatchPreview.comp1Name
+                                        }}</span
+                                    >
                                 </div>
                                 <!-- Comp 2 -->
-                                <div class="flex flex-col items-center space-y-1.5">
+                                <div
+                                    class="flex flex-col items-center space-y-1.5"
+                                >
                                     <div class="relative">
-                                        <div class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"></div>
+                                        <div
+                                            class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"
+                                        ></div>
                                         <img
-                                            :src="activeMatchPreview.comp2Img || FALLBACK_USER_IMG"
+                                            :src="
+                                                activeMatchPreview.comp2Img ||
+                                                FALLBACK_USER_IMG
+                                            "
                                             class="h-14 w-14 rounded-xl border-2 bg-slate-950 object-cover shadow-md"
-                                            :style="{ borderColor: selectedBookingShow ? selectedBookingShow.color : '#475569' }"
+                                            :style="{
+                                                borderColor: selectedBookingShow
+                                                    ? selectedBookingShow.color
+                                                    : '#475569',
+                                            }"
                                         />
                                     </div>
-                                    <span class="text-[9px] font-bold text-white uppercase truncate max-w-[70px]">{{ activeMatchPreview.comp2Name }}</span>
+                                    <span
+                                        class="max-w-[70px] truncate text-[9px] font-bold text-white uppercase"
+                                        >{{
+                                            activeMatchPreview.comp2Name
+                                        }}</span
+                                    >
                                 </div>
                                 <!-- Comp 3 -->
-                                <div class="flex flex-col items-center space-y-1.5">
+                                <div
+                                    class="flex flex-col items-center space-y-1.5"
+                                >
                                     <div class="relative">
-                                        <div class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"></div>
+                                        <div
+                                            class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"
+                                        ></div>
                                         <img
-                                            :src="activeMatchPreview.comp3Img || FALLBACK_USER_IMG"
+                                            :src="
+                                                activeMatchPreview.comp3Img ||
+                                                FALLBACK_USER_IMG
+                                            "
                                             class="h-14 w-14 rounded-xl border-2 bg-slate-950 object-cover shadow-md"
-                                            :style="{ borderColor: selectedBookingShow ? selectedBookingShow.color : '#475569' }"
+                                            :style="{
+                                                borderColor: selectedBookingShow
+                                                    ? selectedBookingShow.color
+                                                    : '#475569',
+                                            }"
                                         />
                                     </div>
-                                    <span class="text-[9px] font-bold text-white uppercase truncate max-w-[70px]">{{ activeMatchPreview.comp3Name }}</span>
+                                    <span
+                                        class="max-w-[70px] truncate text-[9px] font-bold text-white uppercase"
+                                        >{{
+                                            activeMatchPreview.comp3Name
+                                        }}</span
+                                    >
                                 </div>
                                 <!-- Comp 4 -->
-                                <div class="flex flex-col items-center space-y-1.5">
+                                <div
+                                    class="flex flex-col items-center space-y-1.5"
+                                >
                                     <div class="relative">
-                                        <div class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"></div>
+                                        <div
+                                            class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"
+                                        ></div>
                                         <img
-                                            :src="activeMatchPreview.comp4Img || FALLBACK_USER_IMG"
+                                            :src="
+                                                activeMatchPreview.comp4Img ||
+                                                FALLBACK_USER_IMG
+                                            "
                                             class="h-14 w-14 rounded-xl border-2 bg-slate-950 object-cover shadow-md"
-                                            :style="{ borderColor: selectedBookingShow ? selectedBookingShow.color : '#475569' }"
+                                            :style="{
+                                                borderColor: selectedBookingShow
+                                                    ? selectedBookingShow.color
+                                                    : '#475569',
+                                            }"
                                         />
                                     </div>
-                                    <span class="text-[9px] font-bold text-white uppercase truncate max-w-[70px]">{{ activeMatchPreview.comp4Name }}</span>
+                                    <span
+                                        class="max-w-[70px] truncate text-[9px] font-bold text-white uppercase"
+                                        >{{
+                                            activeMatchPreview.comp4Name
+                                        }}</span
+                                    >
                                 </div>
                             </div>
 
                             <!-- Standard 1v1 / 2v2 Layout -->
-                            <div v-else class="grid grid-cols-7 items-center gap-2">
+                            <div
+                                v-else
+                                class="grid grid-cols-7 items-center gap-2"
+                            >
                                 <!-- Competitor 1 with border indicating show brand color -->
                                 <div
                                     class="col-span-3 flex flex-col items-center space-y-2 text-center"
@@ -3383,6 +4261,530 @@ const filteredPaginatedSuperstars = computed(() => {
                                 Live Broadcast
                             </span>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DRAFT MODAL OVERLAY -->
+        <div
+            v-if="isDraftModalOpen"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm"
+        >
+            <div
+                class="flex h-full max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/95 text-slate-100 shadow-2xl"
+            >
+                <!-- Modal Header -->
+                <div
+                    class="bg-slate-955/50 flex items-center justify-between border-b border-slate-800 p-5"
+                >
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="flex items-center justify-center rounded-lg bg-amber-400 p-1.5 text-slate-950"
+                        >
+                            <Sparkles class="h-5 w-5" />
+                        </div>
+                        <div>
+                            <h2
+                                class="text-sm font-black tracking-wider text-white uppercase"
+                            >
+                                Superstar Draft Room
+                            </h2>
+                            <p class="text-[10px] text-slate-400">
+                                Rearrange rosters between shows dynamically
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        @click="isDraftModalOpen = false"
+                        class="text-slate-450 rounded-lg p-1.5 transition hover:bg-slate-800 hover:text-white"
+                    >
+                        Close
+                    </button>
+                </div>
+
+                <!-- Modal Content -->
+                <div class="flex-1 space-y-6 overflow-y-auto p-6">
+                    <!-- STAGE 1: SETUP -->
+                    <div v-if="draftStage === 1" class="space-y-6">
+                        <!-- Select Shows -->
+                        <div class="space-y-3">
+                            <h3
+                                class="flex items-center gap-1.5 text-xs font-black tracking-wider text-white uppercase"
+                            >
+                                <Tv class="h-4 w-4 text-amber-400" />
+                                1. Select Participating Brands / Shows
+                            </h3>
+                            <p class="text-[10px] text-slate-400">
+                                At least 2 shows must be selected to swap
+                                rosters.
+                            </p>
+                            <div
+                                class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3"
+                            >
+                                <div
+                                    v-for="show in shows.filter(
+                                        (s) => !s.is_ple,
+                                    )"
+                                    :key="show.id"
+                                    class="flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-all"
+                                    :class="[
+                                        draftSelectedShows.includes(show.id)
+                                            ? 'border-amber-400 bg-amber-400/5'
+                                            : 'border-slate-800 bg-slate-950/40 hover:border-slate-700',
+                                    ]"
+                                    @click="
+                                        draftSelectedShows.includes(show.id)
+                                            ? (draftSelectedShows =
+                                                  draftSelectedShows.filter(
+                                                      (id) => id !== show.id,
+                                                  ))
+                                            : draftSelectedShows.push(show.id)
+                                    "
+                                >
+                                    <span
+                                        class="h-3 w-3 rounded-full"
+                                        :style="{ backgroundColor: show.color }"
+                                    ></span>
+                                    <span
+                                        class="text-xs font-bold text-slate-200"
+                                        >{{ show.name }}</span
+                                    >
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Select Superstars -->
+                        <div class="space-y-3 border-t border-slate-800 pt-6">
+                            <div class="flex items-center justify-between">
+                                <h3
+                                    class="flex items-center gap-1.5 text-xs font-black tracking-wider text-white uppercase"
+                                >
+                                    <Users class="h-4 w-4 text-amber-400" />
+                                    2. Choose Eligible Draft Candidates
+                                </h3>
+                                <div class="flex gap-2">
+                                    <button
+                                        @click="
+                                            draftEligibleSuperstars =
+                                                superstars.map((s) => s.id)
+                                        "
+                                        class="text-[9px] font-bold text-amber-400 uppercase hover:underline"
+                                    >
+                                        Select All
+                                    </button>
+                                    <span class="text-slate-700">|</span>
+                                    <button
+                                        @click="draftEligibleSuperstars = []"
+                                        class="text-rose-450 text-[9px] font-bold uppercase hover:underline"
+                                    >
+                                        Deselect All
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-slate-400">
+                                Only selected superstars (and their factions)
+                                will enter the draft pool.
+                            </p>
+
+                            <div
+                                class="grid max-h-[250px] grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3 md:grid-cols-4"
+                            >
+                                <div
+                                    v-for="s in superstars"
+                                    :key="s.id"
+                                    class="flex cursor-pointer items-center gap-2 rounded-lg border p-2 transition-all"
+                                    :class="[
+                                        draftEligibleSuperstars.includes(s.id)
+                                            ? 'border-amber-400/60 bg-amber-400/5'
+                                            : 'border-slate-800 bg-slate-950/20 hover:border-slate-800',
+                                    ]"
+                                    @click="
+                                        draftEligibleSuperstars.includes(s.id)
+                                            ? (draftEligibleSuperstars =
+                                                  draftEligibleSuperstars.filter(
+                                                      (id) => id !== s.id,
+                                                  ))
+                                            : draftEligibleSuperstars.push(s.id)
+                                    "
+                                >
+                                    <img
+                                        :src="s.image || FALLBACK_USER_IMG"
+                                        class="h-6 w-6 rounded-full border object-cover"
+                                        :style="{
+                                            borderColor: s.show
+                                                ? s.show.color
+                                                : '#334155',
+                                        }"
+                                    />
+                                    <span
+                                        class="text-slate-350 truncate text-[10px] font-bold"
+                                        >{{ s.name }}</span
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STAGE 2: MODE SELECTION -->
+                    <div v-if="draftStage === 2" class="space-y-6">
+                        <h3
+                            class="flex items-center gap-1.5 text-xs font-black tracking-wider text-white uppercase"
+                        >
+                            <Sparkles class="h-4 w-4 text-amber-400" />
+                            3. Select Draft Engine mode
+                        </h3>
+
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <!-- Manual Mode -->
+                            <div
+                                class="cursor-pointer space-y-3 rounded-2xl border p-5 transition-all"
+                                :class="[
+                                    draftMode === 'manual'
+                                        ? 'shadow-amber-450/5 border-amber-400 bg-amber-400/5 shadow-lg'
+                                        : 'border-slate-800 bg-slate-950/40 hover:border-slate-700',
+                                ]"
+                                @click="draftMode = 'manual'"
+                            >
+                                <div class="flex items-center justify-between">
+                                    <h4
+                                        class="text-xs font-bold tracking-wider text-white uppercase"
+                                    >
+                                        Manual Round-Robin Draft
+                                    </h4>
+                                    <span
+                                        v-if="draftMode === 'manual'"
+                                        class="h-2 w-2 rounded-full bg-amber-400"
+                                    ></span>
+                                </div>
+                                <p
+                                    class="text-[10px] leading-relaxed text-slate-400"
+                                >
+                                    Shows take turns in a round-robin rotation.
+                                    You manually choose which superstar or
+                                    faction gets drafted to the active show.
+                                    Highly strategic.
+                                </p>
+                            </div>
+
+                            <!-- Random Mode -->
+                            <div
+                                class="cursor-pointer space-y-3 rounded-2xl border p-5 transition-all"
+                                :class="[
+                                    draftMode === 'random'
+                                        ? 'shadow-amber-455/5 border-amber-400 bg-amber-400/5 shadow-lg'
+                                        : 'border-slate-800 bg-slate-950/40 hover:border-slate-700',
+                                ]"
+                                @click="draftMode = 'random'"
+                            >
+                                <div class="flex items-center justify-between">
+                                    <h4
+                                        class="text-xs font-bold tracking-wider text-white uppercase"
+                                    >
+                                        Algorithmic Random Draft
+                                    </h4>
+                                    <span
+                                        v-if="draftMode === 'random'"
+                                        class="h-2 w-2 rounded-full bg-amber-400"
+                                    ></span>
+                                </div>
+                                <p
+                                    class="text-[10px] leading-relaxed text-slate-400"
+                                >
+                                    Draft engine distributes all eligible
+                                    candidates and factions randomly and evenly
+                                    across all selected shows in one click.
+                                    Instant results.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STAGE 3: MANUAL EXECUTION -->
+                    <div
+                        v-if="draftStage === 3 && draftMode === 'manual'"
+                        class="space-y-6"
+                    >
+                        <!-- Turn banner -->
+                        <div
+                            class="flex items-center justify-between rounded-xl border px-5 py-4 shadow"
+                            :style="{
+                                borderColor:
+                                    shows.find(
+                                        (s) =>
+                                            s.id ===
+                                            draftSelectedShows[
+                                                draftCurrentShowIndex
+                                            ],
+                                    )?.color || '#334155',
+                                backgroundColor:
+                                    (shows.find(
+                                        (s) =>
+                                            s.id ===
+                                            draftSelectedShows[
+                                                draftCurrentShowIndex
+                                            ],
+                                    )?.color || '#334155') + '15',
+                            }"
+                        >
+                            <div>
+                                <p
+                                    class="text-[9px] font-black tracking-widest uppercase"
+                                    :style="{
+                                        color: shows.find(
+                                            (s) =>
+                                                s.id ===
+                                                draftSelectedShows[
+                                                    draftCurrentShowIndex
+                                                ],
+                                        )?.color,
+                                    }"
+                                >
+                                    Active Turn Pick
+                                </p>
+                                <h3 class="text-base font-black text-white">
+                                    {{
+                                        shows.find(
+                                            (s) =>
+                                                s.id ===
+                                                draftSelectedShows[
+                                                    draftCurrentShowIndex
+                                                ],
+                                        )?.name
+                                    }}'s Turn
+                                </h3>
+                            </div>
+                            <span
+                                class="font-mono text-xs font-bold text-slate-400"
+                            >
+                                {{ draftPool.length }} pool items left
+                            </span>
+                        </div>
+
+                        <!-- Pool Choice Grid -->
+                        <div class="space-y-4">
+                            <h4
+                                class="text-xs font-bold tracking-wider text-white uppercase"
+                            >
+                                Available Draft Pool
+                            </h4>
+                            <div
+                                class="grid max-h-[350px] grid-cols-1 gap-3 overflow-y-auto pr-1 sm:grid-cols-2 md:grid-cols-3"
+                            >
+                                <div
+                                    v-for="item in draftPool"
+                                    :key="item.id"
+                                    class="group flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-950 p-4 transition-all duration-200 hover:border-amber-400/50"
+                                >
+                                    <div>
+                                        <span
+                                            class="mb-2 inline-block rounded px-1.5 py-0.5 text-[8px] font-black tracking-wider uppercase"
+                                            :class="[
+                                                item.type === 'faction'
+                                                    ? 'border border-amber-400/20 bg-amber-400/10 text-amber-400'
+                                                    : 'text-slate-350 border border-slate-700 bg-slate-800',
+                                            ]"
+                                        >
+                                            {{ item.type }}
+                                        </span>
+                                        <h5
+                                            class="truncate text-xs font-black text-white transition group-hover:text-amber-400"
+                                        >
+                                            {{ item.name }}
+                                        </h5>
+                                        <p
+                                            class="mt-1 text-[9px] text-slate-500"
+                                        >
+                                            {{
+                                                item.type === 'faction'
+                                                    ? 'Members:'
+                                                    : 'Individual'
+                                            }}
+                                            <span
+                                                class="ml-0.5 font-semibold text-slate-400"
+                                            >
+                                                {{
+                                                    item.superstars
+                                                        .map((s) => s.name)
+                                                        .join(', ')
+                                                }}
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <button
+                                        @click="draftItemManual(item)"
+                                        class="mt-4 w-full cursor-pointer rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-[10px] font-bold text-slate-300 transition-all hover:border-amber-400 hover:bg-amber-400 hover:text-slate-950"
+                                    >
+                                        Draft to
+                                        {{
+                                            shows.find(
+                                                (s) =>
+                                                    s.id ===
+                                                    draftSelectedShows[
+                                                        draftCurrentShowIndex
+                                                    ],
+                                            )?.name
+                                        }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STAGE 4: SUMMARY & RESULTS -->
+                    <div v-if="draftStage === 4" class="space-y-6">
+                        <div
+                            class="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4"
+                        >
+                            <CheckCircle2 class="h-6 w-6 text-emerald-400" />
+                            <div>
+                                <h4
+                                    class="text-xs font-black tracking-wider text-white uppercase"
+                                >
+                                    Draft Completed successfully!
+                                </h4>
+                                <p class="text-[10px] text-slate-400">
+                                    Review results and confirm to update roster
+                                    metrics.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Groups display -->
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div
+                                v-for="showId in draftSelectedShows"
+                                :key="showId"
+                                class="space-y-3 rounded-xl border border-slate-800 bg-slate-950 p-4"
+                            >
+                                <div
+                                    class="flex items-center gap-2 border-b border-slate-800/80 pb-2"
+                                >
+                                    <span
+                                        class="h-2.5 w-2.5 rounded-full"
+                                        :style="{
+                                            backgroundColor: shows.find(
+                                                (s) => s.id === showId,
+                                            )?.color,
+                                        }"
+                                    ></span>
+                                    <h4
+                                        class="text-xs font-bold tracking-wider text-white uppercase"
+                                    >
+                                        {{
+                                            shows.find((s) => s.id === showId)
+                                                ?.name
+                                        }}
+                                    </h4>
+                                </div>
+                                <div
+                                    class="max-h-[180px] space-y-1.5 overflow-y-auto pr-1"
+                                >
+                                    <div
+                                        v-for="s in superstars.filter(
+                                            (s) =>
+                                                draftResults[s.id] === showId,
+                                        )"
+                                        :key="s.id"
+                                        class="border-slate-850 flex items-center gap-2 rounded-lg border bg-slate-900/60 px-2 py-1.5"
+                                    >
+                                        <img
+                                            :src="s.image || FALLBACK_USER_IMG"
+                                            class="h-5 w-5 rounded-full object-cover"
+                                        />
+                                        <span
+                                            class="text-slate-350 text-[10px] font-bold"
+                                            >{{ s.name }}</span
+                                        >
+                                    </div>
+                                    <div
+                                        v-if="
+                                            superstars.filter(
+                                                (s) =>
+                                                    draftResults[s.id] ===
+                                                    showId,
+                                            ).length === 0
+                                        "
+                                        class="py-4 text-center text-[10px] text-slate-600"
+                                    >
+                                        No candidates drafted.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Logs list -->
+                        <div class="space-y-2 border-t border-slate-800 pt-5">
+                            <h4
+                                class="text-xs font-bold tracking-wider text-slate-400 uppercase"
+                            >
+                                Draft Log Feed
+                            </h4>
+                            <div
+                                class="border-slate-850 bg-slate-955 max-h-[130px] space-y-1 overflow-y-auto rounded-xl border p-3.5 font-mono text-[9px]"
+                            >
+                                <p
+                                    v-for="(log, idx) in draftLogs"
+                                    :key="idx"
+                                    class="text-slate-400"
+                                >
+                                    <span class="font-bold text-amber-500"
+                                        >[{{ idx + 1 }}]</span
+                                    >
+                                    {{ log }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div
+                    class="bg-slate-955/50 flex justify-between gap-3 border-t border-slate-800 p-5"
+                >
+                    <button
+                        v-if="draftStage > 1 && draftStage < 4"
+                        @click="draftStage--"
+                        class="bg-slate-850 cursor-pointer rounded-xl px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-slate-800"
+                    >
+                        Back
+                    </button>
+                    <div v-else></div>
+
+                    <div class="flex gap-3">
+                        <button
+                            @click="isDraftModalOpen = false"
+                            class="cursor-pointer rounded-xl border border-slate-800 bg-slate-900 px-4 py-2.5 text-xs font-bold text-slate-300 transition hover:bg-slate-800"
+                        >
+                            Cancel
+                        </button>
+
+                        <!-- Stage 1 Button -->
+                        <button
+                            v-if="draftStage === 1"
+                            @click="handleStartDraft"
+                            class="cursor-pointer rounded-xl bg-amber-400 px-5 py-2.5 text-xs font-bold text-slate-950 shadow transition hover:bg-amber-300"
+                        >
+                            Next: Mode Selection
+                        </button>
+
+                        <!-- Stage 2 Button -->
+                        <button
+                            v-if="draftStage === 2"
+                            @click="runDraftExecution"
+                            class="cursor-pointer rounded-xl bg-amber-400 px-5 py-2.5 text-xs font-bold text-slate-950 shadow transition hover:bg-amber-300"
+                        >
+                            Begin Draft
+                        </button>
+
+                        <!-- Stage 4 Button -->
+                        <button
+                            v-if="draftStage === 4"
+                            @click="handleSaveDraft"
+                            class="bg-emerald-450 cursor-pointer rounded-xl border border-emerald-500/20 px-5 py-2.5 text-xs font-bold text-white transition hover:bg-emerald-400"
+                        >
+                            Confirm & Save Draft
+                        </button>
                     </div>
                 </div>
             </div>

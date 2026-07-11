@@ -4,9 +4,7 @@ import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/DeleteUser.vue';
-import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { edit } from '@/routes/profile';
@@ -24,7 +22,7 @@ defineOptions({
 });
 
 const page = usePage();
-const user = computed(() => page.props.auth.user);
+const user = computed(() => page.props.auth.user as any);
 </script>
 
 <template>
@@ -114,12 +112,13 @@ const user = computed(() => page.props.auth.user);
                         name="is_public"
                         value="1"
                         :checked="user.is_public"
-                        class="h-4 w-4 rounded border-slate-800 bg-slate-950 text-amber-400 focus:ring-amber-500/30 focus:border-amber-400 cursor-pointer"
+                        class="h-4 w-4 cursor-pointer rounded border-slate-800 bg-slate-950 text-amber-400 focus:border-amber-400 focus:ring-amber-500/30"
                     />
                     <Label
                         for="is_public"
-                        class="text-[10px] font-bold tracking-wider text-slate-400 uppercase cursor-pointer"
-                        >Make Roster Public (read-only access via /@{ user.username || 'username' })</Label
+                        class="cursor-pointer text-[10px] font-bold tracking-wider text-slate-400 uppercase"
+                        >Make Roster Public (read-only access via /@{
+                        user.username || 'username' })</Label
                     >
                     <InputError class="mt-1" :message="errors.is_public" />
                 </div>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Championship;
+use App\Models\MatchLog;
 use App\Models\Show;
 use App\Models\ShowLog;
 use App\Models\Storyline;
@@ -279,7 +280,7 @@ it('enforces that users cannot see or modify other users data', function () {
 
     // 1. Verify index loaded data does not contain other user's show or superstar
     actingAs($this->user)
-        ->get(route('dashboard'))
+        ->get(route('universe.public', ['username' => $this->user->username]))
         ->assertOk()
         ->assertInertia(function ($page) {
             $shows = $page->toArray()['props']['shows'];
@@ -488,7 +489,7 @@ it('allows authenticated users to run championship title matches and updates cha
     $show = Show::create(['name' => 'SmackDown', 'color' => '#0055ff', 'user_id' => $this->user->id]);
     $s1 = Superstar::create(['name' => 'Cody Rhodes', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0, 'user_id' => $this->user->id]);
     $s2 = Superstar::create(['name' => 'Roman Reigns', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0, 'user_id' => $this->user->id]);
-    
+
     $championship = Championship::create([
         'name' => 'WWE Championship',
         'show_id' => $show->id,
@@ -686,7 +687,7 @@ it('allows authenticated users to clear all universe data', function () {
 
     // Create a ShowLog and a MatchLog
     $showLog = ShowLog::create(['show_id' => $show->id, 'date' => '2026-07-08']);
-    App\Models\MatchLog::create([
+    MatchLog::create([
         'show_log_id' => $showLog->id,
         'division' => 'Singles',
         'c1_superstar_id' => $s1->id,
@@ -721,7 +722,7 @@ it('paginates superstars and teams using infinite scroll on the dashboard index'
     }
 
     actingAs($this->user)
-        ->get(route('dashboard'))
+        ->get(route('universe.public', ['username' => $this->user->username]))
         ->assertOk()
         ->assertInertia(function ($page) {
             // Full collections (for business logic like booking, dropdowns)
@@ -765,5 +766,3 @@ it('prevents superstars from being assigned to PLE shows', function () {
         ])
         ->assertSessionHasErrors(['show_id']);
 });
-
-

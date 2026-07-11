@@ -3,10 +3,13 @@
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ChampionshipController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DraftController;
+use App\Http\Controllers\PublicUniverseController;
 use App\Http\Controllers\ShowController;
 use App\Http\Controllers\StorylineController;
 use App\Http\Controllers\SuperstarController;
 use App\Http\Controllers\TeamController;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -21,6 +24,9 @@ Route::get('/', function () {
         'canResetPassword' => Features::enabled(Features::resetPasswords()),
         'status' => session('status'),
         'passwordRules' => Password::defaults()->toPasswordRulesString(),
+        'publicUsers' => User::where('is_public', true)
+            ->select('id', 'name', 'username')
+            ->get(),
     ]);
 })->name('home');
 
@@ -47,8 +53,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('storylines', [StorylineController::class, 'store'])->name('storylines.store');
 
     Route::post('booking/commit', BookingController::class)->name('booking.commit');
+    Route::post('draft/commit', [DraftController::class, 'commit'])->name('draft.commit');
 });
 
 require __DIR__.'/settings.php';
 
-Route::get('/@{username}', [App\Http\Controllers\PublicUniverseController::class, 'show'])->name('universe.public');
+Route::get('/@{username}', [PublicUniverseController::class, 'show'])->name('universe.public');

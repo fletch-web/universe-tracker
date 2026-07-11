@@ -90,11 +90,39 @@ it('allows anyone to access a public user read-only universe page', function () 
         ->assertOk()
         ->assertInertia(function ($page) {
             $props = $page->toArray()['props'];
-            
+
             expect($props['isReadOnly'])->toBeTrue();
             expect($props['owner']['name'])->toBe($this->user->name);
             expect($props['owner']['username'])->toBe('john_doe');
             expect($props['shows'])->toHaveCount(1);
             expect($props['shows'][0]['name'])->toBe('Raw');
+        });
+});
+
+it('allows the owner to access their own private universe page with edit permissions', function () {
+    actingAs($this->user)
+        ->get('/@john_doe')
+        ->assertOk()
+        ->assertInertia(function ($page) {
+            $props = $page->toArray()['props'];
+
+            expect($props['isReadOnly'])->toBeFalse();
+            expect($props['owner']['username'])->toBe('john_doe');
+        });
+});
+
+it('lists users whose universe is public on the landing page', function () {
+    $publicUser = User::factory()->create([
+        'username' => 'public_user',
+        'is_public' => true,
+    ]);
+
+    get(route('home'))
+        ->assertOk()
+        ->assertInertia(function ($page) {
+            $props = $page->toArray()['props'];
+
+            expect($props['publicUsers'])->toHaveCount(1);
+            expect($props['publicUsers'][0]['username'])->toBe('public_user');
         });
 });
