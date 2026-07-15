@@ -681,12 +681,15 @@ function compressAndConvertImage(
                     >
                         No active combatants registered under this brand.
                     </div>
-                    <InfiniteScroll
+                    <div
                         v-else
-                        data="paginatedSuperstars"
-                        preserve-url
-                        class="max-h-[300px] space-y-4 overflow-y-auto pr-1"
+                        class="max-h-[300px] overflow-y-auto pr-1"
                     >
+                        <InfiniteScroll
+                            data="paginatedSuperstars"
+                            preserve-url
+                            class="space-y-4"
+                        >
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div
                                 v-for="s in filteredPaginatedSuperstars"
@@ -789,7 +792,8 @@ function compressAndConvertImage(
                                 Loading more combatants...
                             </div>
                         </template>
-                    </InfiniteScroll>
+                        </InfiniteScroll>
+                    </div>
                 </div>
 
                 <!-- Faction standings display -->
@@ -805,12 +809,15 @@ function compressAndConvertImage(
                     >
                         No tag team factions assembled yet.
                     </div>
-                    <InfiniteScroll
+                    <div
                         v-else
-                        data="paginatedTeams"
-                        preserve-url
-                        class="max-h-[300px] space-y-4 overflow-y-auto pr-1"
+                        class="max-h-[300px] overflow-y-auto pr-1"
                     >
+                        <InfiniteScroll
+                            data="paginatedTeams"
+                            preserve-url
+                            class="space-y-4"
+                        >
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div
                                 v-for="t in filteredPaginatedTeams"
@@ -869,7 +876,8 @@ function compressAndConvertImage(
                                 Loading more alignments...
                             </div>
                         </template>
-                    </InfiniteScroll>
+                        </InfiniteScroll>
+                    </div>
                 </div>
             </div>
         </div>
