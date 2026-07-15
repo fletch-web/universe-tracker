@@ -230,6 +230,112 @@ const isFactionBased = computed(() => {
     );
 });
 
+const getCompetitorNameBySlot = (slot: '1' | '2' | '3' | '4') => {
+    const isTeamMatchVal = isTeamMatch.value;
+    const isFactionBasedVal = isFactionBased.value;
+
+    if (isTeamMatchVal && !isFactionBasedVal) {
+        const list = slot === '1' ? bookingTeam1Superstars.value : bookingTeam2Superstars.value;
+
+        if (!list || list.length === 0) {
+return `Slot #${slot}`;
+}
+
+        return list
+            .map(id => props.superstars.find(s => s.id === Number(id))?.name || '')
+            .filter(Boolean)
+            .join(' & ') || `Slot #${slot}`;
+    } else {
+        let idVal = '';
+
+        if (slot === '1') {
+idVal = bookingComp1.value;
+} else if (slot === '2') {
+idVal = bookingComp2.value;
+} else if (slot === '3') {
+idVal = bookingComp3.value;
+} else if (slot === '4') {
+idVal = bookingComp4.value;
+}
+
+        if (!idVal) {
+return `Slot #${slot}`;
+}
+
+        if (!isTeamMatchVal) {
+            const s = props.superstars.find(superstar => superstar.id === Number(idVal));
+
+            return s ? s.name : `Slot #${slot}`;
+        } else {
+            const t = props.teams.find(team => team.id === Number(idVal));
+
+            return t ? t.name : `Slot #${slot}`;
+        }
+    }
+};
+
+const getCompetitorImage = (match: StagedMatch | null, slot: 1 | 2 | 3 | 4) => {
+    if (!match) {
+return null;
+}
+
+    const isTeamMatchVal = [
+        'TagTeam',
+        'TripleThreatTag',
+        'Fatal4WayTag',
+        'ThreeOnThreeTag',
+        'FourOnFourTag',
+    ].includes(match.division);
+
+    const isFactionBasedVal = isTeamMatchVal && !(
+        ['TagTeam', 'ThreeOnThreeTag', 'FourOnFourTag'].includes(match.division) &&
+        match.team1_superstar_ids
+    );
+
+    if (isTeamMatchVal && !isFactionBasedVal) {
+        const superstarIds = slot === 1 ? match.team1_superstar_ids : slot === 2 ? match.team2_superstar_ids : undefined;
+
+        if (superstarIds && superstarIds.length > 0) {
+            const firstSuperstar = props.superstars.find(s => s.id === superstarIds[0]);
+
+            return firstSuperstar ? firstSuperstar.image : null;
+        }
+
+        return null;
+    } else {
+        let idVal = 0;
+
+        if (slot === 1) {
+idVal = match.c1Id;
+} else if (slot === 2) {
+idVal = match.c2Id;
+} else if (slot === 3) {
+idVal = match.c3Id;
+} else if (slot === 4) {
+idVal = match.c4Id;
+}
+
+        if (!idVal) {
+return null;
+}
+
+        if (!isTeamMatchVal) {
+            const s = props.superstars.find(superstar => superstar.id === idVal);
+
+            return s ? s.image : null;
+        } else {
+            const t = props.teams.find(team => team.id === idVal);
+
+            if (t && t.superstars && t.superstars.length > 0) {
+                const firstS = props.superstars.find(superstar => superstar.id === t.superstars[0].id);
+
+                return firstS ? firstS.image : t.superstars[0].image;
+            }
+
+            return null;
+        }
+    }
+};
 
 const handleBookingShowChange = () => {
     bookingComp1.value = '';
@@ -995,8 +1101,8 @@ return;
                                 v-model="bookingWinner"
                                 class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-white focus:border-amber-400 focus:outline-none"
                             >
-                                <option value="1">Slot #1</option>
-                                <option value="2">Slot #2</option>
+                                <option value="1">{{ getCompetitorNameBySlot('1') }}</option>
+                                <option value="2">{{ getCompetitorNameBySlot('2') }}</option>
                                 <option
                                     v-if="
                                         [
@@ -1008,7 +1114,7 @@ return;
                                     "
                                     value="3"
                                 >
-                                    Slot #3
+                                    {{ getCompetitorNameBySlot('3') }}
                                 </option>
                                 <option
                                     v-if="
@@ -1018,7 +1124,7 @@ return;
                                     "
                                     value="4"
                                 >
-                                    Slot #4
+                                    {{ getCompetitorNameBySlot('4') }}
                                 </option>
                             </select>
                         </div>
@@ -1164,327 +1270,156 @@ return;
                         </button>
                     </div>
                 </div>
-            </div>
-
-            <!-- Active match preview slot showcase -->
+            </div>            <!-- Active match preview slot showcase -->
             <div
                 v-if="activeMatchPreview"
                 class="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-inner"
             >
-                <div
-                    class="absolute inset-0 z-0 bg-cover bg-center opacity-10 blur-xl"
-                ></div>
+                <div class="relative z-10 flex flex-col items-center space-y-6">
+                    <!-- Title Match Header -->
+                    <div v-if="activeMatchPreview.championshipName" class="flex flex-col items-center gap-1">
+                        <span class="flex items-center gap-1.5 text-xs font-black tracking-widest text-amber-400 uppercase">
+                            <Trophy class="h-4 w-4" /> CHAMPIONSHIP MATCH
+                        </span>
+                        <span class="text-sm font-black text-white italic tracking-wide uppercase drop-shadow">
+                            {{ activeMatchPreview.championshipName }}
+                        </span>
+                    </div>
 
-                <div class="relative z-10 flex flex-col items-center space-y-4">
-                    <span
-                        class="via-yellow-450 to-amber-550 rounded bg-gradient-to-r from-amber-300 px-3 py-1 text-[9px] font-black tracking-widest text-slate-950 uppercase shadow-lg shadow-amber-500/10"
-                    >
-                        Match Preview Card
-                    </span>
+                    <!-- Match Stipulation & Division Banner -->
+                    <div class="flex flex-col items-center text-center">
+                        <span class="text-xs font-extrabold text-purple-400 uppercase tracking-widest">
+                            {{ activeMatchPreview.stipulation || 'Normal Match' }}
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                            {{ activeMatchPreview.division === 'Segment' ? 'Storyline Segment' : activeMatchPreview.division }}
+                        </span>
+                    </div>
 
-                    <div class="w-full py-4">
-                        <!-- Segment Layout -->
-                        <div
-                            v-if="activeMatchPreview.division === 'Segment'"
-                            class="text-center"
-                        >
-                            <p
-                                class="rounded-xl border border-slate-800 bg-slate-950 p-4 font-mono text-xs leading-relaxed text-slate-300 italic"
-                            >
+                    <!-- Competitors Layout -->
+                    <div class="w-full py-2">
+                        <!-- Segment Notes -->
+                        <div v-if="activeMatchPreview.division === 'Segment'" class="text-center">
+                            <p class="rounded-xl border border-slate-800 bg-slate-950 p-4 font-mono text-xs leading-relaxed text-slate-300 italic">
                                 "{{ activeMatchPreview.notes }}"
                             </p>
                         </div>
 
-                        <!-- Triple Threat Layout -->
-                        <div
-                            v-else-if="
-                                activeMatchPreview.division === 'TripleThreat'
-                            "
-                            class="grid grid-cols-3 items-center gap-2 text-center"
-                        >
-                            <!-- Comp 1 -->
-                            <div
-                                class="flex flex-col items-center space-y-1.5"
+                        <!-- Match Competitors Grid -->
+                        <div v-else>
+                            <!-- Grid for Triple Threat or Fatal 4-Way or Multi-man matches -->
+                            <div 
+                                :class="[
+                                    'grid gap-4 items-start text-center',
+                                    activeMatchPreview.division === 'TripleThreat' ? 'grid-cols-3' : 
+                                    ['Fatal4Way', 'Fatal4WayTag'].includes(activeMatchPreview.division) ? 'grid-cols-4' : 'grid-cols-2'
+                                ]"
                             >
-                                <div class="relative">
-                                    <div
-                                        class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"
-                                    ></div>
-                                    <img
-                                        :src="
-                                            activeMatchPreview.comp1Img ||
-                                            FALLBACK_USER_IMG
-                                        "
-                                        class="h-16 w-16 rounded-xl border-2 bg-slate-950 object-cover shadow-md"
-                                        :style="{
-                                            borderColor: selectedBookingShow
-                                                ? selectedBookingShow.color
-                                                : '#475569',
-                                        }"
-                                    />
-                                </div>
-                                <span
-                                    class="max-w-[80px] truncate text-[10px] font-bold text-white uppercase"
-                                    >{{ activeMatchPreview.comp1Name }}</span
+                                <!-- Competitor 1 -->
+                                <div 
+                                    class="flex flex-col items-center space-y-2"
+                                    :class="{ 'opacity-40 grayscale': activeMatchPreview.outcome === 'Decisive' && activeMatchPreview.winnerSlot !== '1' }"
                                 >
-                            </div>
-                            <!-- Comp 2 -->
-                            <div
-                                class="flex flex-col items-center space-y-1.5"
-                            >
-                                <div class="relative">
-                                    <div
-                                        class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"
-                                    ></div>
-                                    <img
-                                        :src="
-                                            activeMatchPreview.comp2Img ||
-                                            FALLBACK_USER_IMG
-                                        "
-                                        class="h-16 w-16 rounded-xl border-2 bg-slate-950 object-cover shadow-md"
-                                        :style="{
-                                            borderColor: selectedBookingShow
-                                                ? selectedBookingShow.color
-                                                : '#475569',
-                                        }"
-                                    />
+                                    <div class="relative">
+                                        <img
+                                            :src="getCompetitorImage(activeMatchPreview, 1) || FALLBACK_USER_IMG"
+                                            class="h-16 w-16 rounded-full border-2 bg-slate-950 object-cover shadow-lg"
+                                            :style="{ borderColor: selectedBookingShow ? selectedBookingShow.color : '#6b21a8' }"
+                                        />
+                                        <!-- Winner Badge -->
+                                        <div v-if="activeMatchPreview.outcome === 'Decisive' && activeMatchPreview.winnerSlot === '1'" class="absolute -top-2 -right-2 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 text-[8px] font-black px-1.5 py-0.5 rounded-full shadow uppercase tracking-wider">
+                                            🏆 WINNER
+                                        </div>
+                                    </div>
+                                    <span class="max-w-[100px] truncate text-xs font-bold text-white uppercase tracking-wide">
+                                        {{ activeMatchPreview.comp1Name }}
+                                    </span>
                                 </div>
-                                <span
-                                    class="max-w-[80px] truncate text-[10px] font-bold text-white uppercase"
-                                    >{{ activeMatchPreview.comp2Name }}</span
-                                >
-                            </div>
-                            <!-- Comp 3 -->
-                            <div
-                                class="flex flex-col items-center space-y-1.5"
-                            >
-                                <div class="relative">
-                                    <div
-                                        class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"
-                                    ></div>
-                                    <img
-                                        :src="
-                                            activeMatchPreview.comp3Img ||
-                                            FALLBACK_USER_IMG
-                                        "
-                                        class="h-16 w-16 rounded-xl border-2 bg-slate-950 object-cover shadow-md"
-                                        :style="{
-                                            borderColor: selectedBookingShow
-                                                ? selectedBookingShow.color
-                                                : '#475569',
-                                        }"
-                                    />
-                                </div>
-                                <span
-                                    class="max-w-[80px] truncate text-[10px] font-bold text-white uppercase"
-                                    >{{ activeMatchPreview.comp3Name }}</span
-                                >
-                            </div>
-                        </div>
 
-                        <!-- Fatal 4-Way Layout -->
-                        <div
-                            v-else-if="
-                                ['Fatal4Way', 'Fatal4WayTag'].includes(
-                                    activeMatchPreview.division,
-                                )
-                            "
-                            class="grid grid-cols-4 items-center gap-2 text-center"
-                        >
-                            <!-- Comp 1 -->
-                            <div
-                                class="flex flex-col items-center space-y-1.5"
-                            >
-                                <div class="relative">
-                                    <div
-                                        class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"
-                                    ></div>
-                                    <img
-                                        :src="
-                                            activeMatchPreview.comp1Img ||
-                                            FALLBACK_USER_IMG
-                                        "
-                                        class="h-14 w-14 rounded-xl border-2 bg-slate-950 object-cover shadow-md"
-                                        :style="{
-                                            borderColor: selectedBookingShow
-                                                ? selectedBookingShow.color
-                                                : '#475569',
-                                        }"
-                                    />
-                                </div>
-                                <span
-                                    class="max-w-[70px] truncate text-[9px] font-bold text-white uppercase"
-                                    >{{ activeMatchPreview.comp1Name }}</span
+                                <!-- Competitor 2 -->
+                                <div 
+                                    class="flex flex-col items-center space-y-2"
+                                    :class="{ 'opacity-40 grayscale': activeMatchPreview.outcome === 'Decisive' && activeMatchPreview.winnerSlot !== '2' }"
                                 >
-                            </div>
-                            <!-- Comp 2 -->
-                            <div
-                                class="flex flex-col items-center space-y-1.5"
-                            >
-                                <div class="relative">
-                                    <div
-                                        class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"
-                                    ></div>
-                                    <img
-                                        :src="
-                                            activeMatchPreview.comp2Img ||
-                                            FALLBACK_USER_IMG
-                                        "
-                                        class="h-14 w-14 rounded-xl border-2 bg-slate-950 object-cover shadow-md"
-                                        :style="{
-                                            borderColor: selectedBookingShow
-                                                ? selectedBookingShow.color
-                                                : '#475569',
-                                        }"
-                                    />
+                                    <div class="relative">
+                                        <img
+                                            :src="getCompetitorImage(activeMatchPreview, 2) || FALLBACK_USER_IMG"
+                                            class="h-16 w-16 rounded-full border-2 bg-slate-950 object-cover shadow-lg"
+                                            :style="{ borderColor: selectedBookingShow ? selectedBookingShow.color : '#6b21a8' }"
+                                        />
+                                        <!-- Winner Badge -->
+                                        <div v-if="activeMatchPreview.outcome === 'Decisive' && activeMatchPreview.winnerSlot === '2'" class="absolute -top-2 -right-2 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 text-[8px] font-black px-1.5 py-0.5 rounded-full shadow uppercase tracking-wider">
+                                            🏆 WINNER
+                                        </div>
+                                    </div>
+                                    <span class="max-w-[100px] truncate text-xs font-bold text-white uppercase tracking-wide">
+                                        {{ activeMatchPreview.comp2Name }}
+                                    </span>
                                 </div>
-                                <span
-                                    class="max-w-[70px] truncate text-[9px] font-bold text-white uppercase"
-                                    >{{ activeMatchPreview.comp2Name }}</span
-                                >
-                            </div>
-                            <!-- Comp 3 -->
-                            <div
-                                class="flex flex-col items-center space-y-1.5"
-                            >
-                                <div class="relative">
-                                    <div
-                                        class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"
-                                    ></div>
-                                    <img
-                                        :src="
-                                            activeMatchPreview.comp3Img ||
-                                            FALLBACK_USER_IMG
-                                        "
-                                        class="h-14 w-14 rounded-xl border-2 bg-slate-950 object-cover shadow-md"
-                                        :style="{
-                                            borderColor: selectedBookingShow
-                                                ? selectedBookingShow.color
-                                                : '#475569',
-                                        }"
-                                    />
-                                </div>
-                                <span
-                                    class="max-w-[70px] truncate text-[9px] font-bold text-white uppercase"
-                                    >{{ activeMatchPreview.comp3Name }}</span
-                                >
-                            </div>
-                            <!-- Comp 4 -->
-                            <div
-                                class="flex flex-col items-center space-y-1.5"
-                            >
-                                <div class="relative">
-                                    <div
-                                        class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"
-                                    ></div>
-                                    <img
-                                        :src="
-                                            activeMatchPreview.comp4Img ||
-                                            FALLBACK_USER_IMG
-                                        "
-                                        class="h-14 w-14 rounded-xl border-2 bg-slate-950 object-cover shadow-md"
-                                        :style="{
-                                            borderColor: selectedBookingShow
-                                                ? selectedBookingShow.color
-                                                : '#475569',
-                                        }"
-                                    />
-                                </div>
-                                <span
-                                    class="max-w-[70px] truncate text-[9px] font-bold text-white uppercase"
-                                    >{{ activeMatchPreview.comp4Name }}</span
-                                >
-                            </div>
-                        </div>
 
-                        <!-- Standard 1v1 / 2v2 Layout -->
-                        <div
-                            v-else
-                            class="grid grid-cols-7 items-center gap-2"
-                        >
-                            <!-- Competitor 1 with border indicating show brand color -->
-                            <div
-                                class="col-span-3 flex flex-col items-center space-y-2 text-center"
-                            >
-                                <div class="relative">
-                                    <div
-                                        class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"
-                                    ></div>
-                                    <img
-                                        :src="
-                                            activeMatchPreview.comp1Img ||
-                                            FALLBACK_USER_IMG
-                                        "
-                                        class="h-20 w-20 rounded-xl border-4 bg-slate-955 object-cover shadow-lg sm:h-24 sm:w-24"
-                                        :style="{
-                                            borderColor: selectedBookingShow
-                                                ? selectedBookingShow.color
-                                                : '#475569',
-                                        }"
-                                    />
+                                <!-- Competitor 3 (if applicable) -->
+                                <div 
+                                    v-if="['TripleThreat', 'TripleThreatTag', 'Fatal4Way', 'Fatal4WayTag'].includes(activeMatchPreview.division)"
+                                    class="flex flex-col items-center space-y-2"
+                                    :class="{ 'opacity-40 grayscale': activeMatchPreview.outcome === 'Decisive' && activeMatchPreview.winnerSlot !== '3' }"
+                                >
+                                    <div class="relative">
+                                        <img
+                                            :src="getCompetitorImage(activeMatchPreview, 3) || FALLBACK_USER_IMG"
+                                            class="h-16 w-16 rounded-full border-2 bg-slate-950 object-cover shadow-lg"
+                                            :style="{ borderColor: selectedBookingShow ? selectedBookingShow.color : '#6b21a8' }"
+                                        />
+                                        <!-- Winner Badge -->
+                                        <div v-if="activeMatchPreview.outcome === 'Decisive' && activeMatchPreview.winnerSlot === '3'" class="absolute -top-2 -right-2 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 text-[8px] font-black px-1.5 py-0.5 rounded-full shadow uppercase tracking-wider">
+                                            🏆 WINNER
+                                        </div>
+                                    </div>
+                                    <span class="max-w-[100px] truncate text-xs font-bold text-white uppercase tracking-wide">
+                                        {{ activeMatchPreview.comp3Name }}
+                                    </span>
                                 </div>
-                                <h3
-                                    class="text-xs font-black tracking-wide text-white uppercase drop-shadow"
-                                >
-                                    {{ activeMatchPreview.comp1Name }}
-                                </h3>
-                            </div>
 
-                            <div
-                                class="col-span-1 flex flex-col items-center justify-center"
-                            >
-                                <span
-                                    class="via-yellow-455 to-amber-550 bg-gradient-to-b from-amber-300 bg-clip-text text-xl font-black tracking-tighter text-transparent italic drop-shadow sm:text-2xl"
-                                    >VS</span
+                                <!-- Competitor 4 (if applicable) -->
+                                <div 
+                                    v-if="['Fatal4Way', 'Fatal4WayTag'].includes(activeMatchPreview.division)"
+                                    class="flex flex-col items-center space-y-2"
+                                    :class="{ 'opacity-40 grayscale': activeMatchPreview.outcome === 'Decisive' && activeMatchPreview.winnerSlot !== '4' }"
                                 >
-                            </div>
-
-                            <!-- Competitor 2 with border indicating show brand color -->
-                            <div
-                                class="col-span-3 flex flex-col items-center space-y-2 text-center"
-                            >
-                                <div class="relative">
-                                    <div
-                                        class="absolute inset-0 z-10 rounded-xl bg-gradient-to-t from-slate-950 to-transparent opacity-80"
-                                    ></div>
-                                    <img
-                                        :src="
-                                            activeMatchPreview.comp2Img ||
-                                            FALLBACK_USER_IMG
-                                        "
-                                        class="h-20 w-20 rounded-xl border-4 bg-slate-955 object-cover shadow-lg sm:h-24 sm:w-24"
-                                        :style="{
-                                            borderColor: selectedBookingShow
-                                                ? selectedBookingShow.color
-                                                : '#475569',
-                                        }"
-                                    />
+                                    <div class="relative">
+                                        <img
+                                            :src="getCompetitorImage(activeMatchPreview, 4) || FALLBACK_USER_IMG"
+                                            class="h-16 w-16 rounded-full border-2 bg-slate-950 object-cover shadow-lg"
+                                            :style="{ borderColor: selectedBookingShow ? selectedBookingShow.color : '#6b21a8' }"
+                                        />
+                                        <!-- Winner Badge -->
+                                        <div v-if="activeMatchPreview.outcome === 'Decisive' && activeMatchPreview.winnerSlot === '4'" class="absolute -top-2 -right-2 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 text-[8px] font-black px-1.5 py-0.5 rounded-full shadow uppercase tracking-wider">
+                                            🏆 WINNER
+                                        </div>
+                                    </div>
+                                    <span class="max-w-[100px] truncate text-xs font-bold text-white uppercase tracking-wide">
+                                        {{ activeMatchPreview.comp4Name }}
+                                    </span>
                                 </div>
-                                <h3
-                                    class="text-xs font-black tracking-wide text-white uppercase drop-shadow"
-                                >
-                                    {{ activeMatchPreview.comp2Name }}
-                                </h3>
                             </div>
                         </div>
                     </div>
 
-                    <div
-                        class="z-10 flex w-full max-w-xs items-center justify-between rounded-xl border border-slate-800/80 bg-slate-950/90 px-3 py-1.5 text-[10px]"
-                    >
-                        <span class="font-semibold text-slate-400 uppercase"
-                            >{{
-                                activeMatchPreview.division === 'Segment'
-                                    ? 'Storyline Segment'
-                                    : activeMatchPreview.division + ' Match'
-                            }}
-                            Showcase</span
-                        >
-                        <span
-                            class="flex items-center gap-1 font-bold text-amber-400"
-                        >
-                            <Sparkles class="h-3.5 w-3.5 animate-pulse" /> Live Broadcast
-                        </span>
+                    <!-- Outcome Summary Bar -->
+                    <div class="w-full border-t border-slate-800 pt-4 flex flex-col items-center space-y-2 text-center">
+                        <div class="text-xs font-bold">
+                            <span v-if="activeMatchPreview.outcome === 'Decisive'" class="text-amber-400 uppercase tracking-wider">
+                                Winner: {{ activeMatchPreview.winnerName }}
+                            </span>
+                            <span v-else-if="activeMatchPreview.outcome === 'Draw'" class="text-slate-400 uppercase tracking-wider">
+                                Result: {{ activeMatchPreview.winnerName }}
+                            </span>
+                            <span v-else class="text-slate-400">
+                                Segment Complete
+                            </span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 font-medium">
+                            Broadcast: {{ selectedBookingShow ? selectedBookingShow.name : 'Unknown' }}
+                        </div>
                     </div>
                 </div>
             </div>

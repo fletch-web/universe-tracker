@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
+import { Search, X } from '@lucide/vue';
+import { ref, onMounted, computed } from 'vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import InputError from '@/components/InputError.vue';
 import PasskeyVerify from '@/components/PasskeyVerify.vue';
@@ -27,7 +28,7 @@ interface PublicUser {
     username: string;
 }
 
-defineProps<{
+const props = defineProps<{
     status?: string;
     canResetPassword: boolean;
     passwordRules: string;
@@ -35,6 +36,26 @@ defineProps<{
 }>();
 
 const activeTab = ref<'login' | 'register'>('login');
+const searchQuery = ref('');
+const isAuthModalOpen = ref(false);
+
+const filteredPublicUsers = computed(() => {
+    if (!props.publicUsers) {
+return [];
+}
+
+    if (searchQuery.value.trim() === '') {
+return props.publicUsers;
+}
+
+    const query = searchQuery.value.toLowerCase();
+
+    return props.publicUsers.filter(
+        (u) =>
+            u.name.toLowerCase().includes(query) ||
+            u.username.toLowerCase().includes(query)
+    );
+});
 
 onMounted(() => {
     const params = new URLSearchParams(window.location.search);
@@ -42,11 +63,13 @@ onMounted(() => {
 
     if (tab === 'register' || tab === 'login') {
         activeTab.value = tab;
+        isAuthModalOpen.value = true;
     }
 });
 
 const setTab = (tab: 'login' | 'register') => {
     activeTab.value = tab;
+    isAuthModalOpen.value = true;
     const url = new URL(window.location.href);
     url.searchParams.set('tab', tab);
     window.history.pushState({}, '', url.toString());
@@ -54,47 +77,124 @@ const setTab = (tab: 'login' | 'register') => {
 </script>
 
 <template>
-    <Head :title="activeTab === 'login' ? 'Log in' : 'Register'" />
+    <Head :title="'Explore Universes'" />
 
-    <div
-        class="relative flex min-h-svh flex-col items-center justify-center gap-6 overflow-hidden bg-slate-950 p-6 font-sans text-slate-100 md:p-10"
-    >
+    <div class="relative flex min-h-svh flex-col overflow-hidden bg-slate-955 text-slate-100 font-sans">
         <!-- Background decorative ambient glows -->
-        <div
-            class="pointer-events-none absolute -top-40 -left-40 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]"
-        ></div>
-        <div
-            class="pointer-events-none absolute -right-40 -bottom-40 h-96 w-96 rounded-full bg-yellow-500/10 blur-[120px]"
-        ></div>
+        <div class="pointer-events-none absolute -top-40 -left-40 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]"></div>
+        <div class="pointer-events-none absolute -right-40 -bottom-40 h-96 w-96 rounded-full bg-yellow-500/10 blur-[120px]"></div>
 
-        <div class="relative z-10 flex w-full max-w-md flex-col gap-6">
-            <div class="flex flex-col items-center gap-2 text-center">
-                <Link
-                    :href="home()"
-                    class="flex flex-col items-center gap-3 self-center"
-                >
-                    <div
-                        class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-400 p-2.5 text-slate-950 shadow-lg shadow-amber-500/20"
+        <!-- Top Navigation Bar -->
+        <header class="relative z-10 w-full max-w-7xl mx-auto flex items-center justify-between px-6 py-5 border-b border-slate-800 bg-slate-950/40">
+            <Link :href="home()" class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-400 p-2 text-slate-950 shadow-lg shadow-amber-500/20">
+                    <AppLogoIcon class="size-6 fill-current" />
+                </div>
+                <span class="text-base font-black tracking-tight text-white uppercase">Universe Tracker</span>
+            </Link>
+            <div class="flex items-center gap-2">
+                <template v-if="$page.props.auth?.user">
+                    <Link
+                        href="/dashboard"
+                        class="rounded-xl bg-amber-400 px-4 py-2 text-xs font-bold text-slate-955 transition hover:bg-amber-300 shadow"
                     >
-                        <AppLogoIcon class="size-7 fill-current" />
-                    </div>
-                </Link>
-                <h1 class="mt-2 text-xl font-black tracking-tight text-white">
-                    Universe Tracker
+                        Go to Dashboard
+                    </Link>
+                </template>
+                <template v-else>
+                    <button
+                        @click="setTab('login')"
+                        class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-2 text-xs font-bold text-slate-200 transition hover:bg-slate-800"
+                        data-test="nav-login"
+                    >
+                        Sign In
+                    </button>
+                    <button
+                        @click="setTab('register')"
+                        class="rounded-xl bg-amber-400 px-4 py-2 text-xs font-bold text-slate-955 transition hover:bg-amber-300 shadow"
+                        data-test="nav-register"
+                    >
+                        Register
+                    </button>
+                </template>
+            </div>
+        </header>
+
+        <!-- Main Content Portal -->
+        <main class="relative z-10 w-full max-w-4xl mx-auto px-6 py-12 flex-1 flex flex-col items-center">
+            <div class="text-center max-w-xl mb-12">
+                <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase bg-gradient-to-b from-white to-slate-300 bg-clip-text text-transparent italic">
+                    Explore Booking Universes
                 </h1>
-                <p class="text-xs text-slate-400">
-                    Elite Booking & Metrics Engine
+                <p class="mt-2 text-sm text-slate-400">
+                    Discover and browse elite custom wrestling brands, faction statistics, and match tracking metrics from managers around the world.
                 </p>
             </div>
 
-            <div class="flex flex-col gap-6">
-                <Card
-                    class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl backdrop-blur-md"
+            <!-- Portal Search Bar -->
+            <div class="w-full max-w-lg mb-10 relative">
+                <Search class="absolute left-4 top-3.5 h-4.5 w-4.5 text-slate-500" />
+                <input
+                    type="text"
+                    v-model="searchQuery"
+                    placeholder="Search managers or universes by name..."
+                    class="w-full rounded-2xl border border-slate-800 bg-slate-900/40 py-3.5 pl-12 pr-4 text-sm text-white placeholder-slate-500 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 backdrop-blur"
+                />
+            </div>
+
+            <!-- Public Universes Showcases -->
+            <div class="w-full">
+                <div v-if="filteredPublicUsers.length === 0" class="text-center py-16 text-slate-500">
+                    <p class="text-sm font-semibold">No public booking universes match your search.</p>
+                    <p class="text-xs mt-1 text-slate-600">Be the first to publish yours by editing your profile settings!</p>
+                </div>
+                <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div
+                        v-for="user in filteredPublicUsers"
+                        :key="user.id"
+                        class="flex items-center justify-between rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 backdrop-blur transition-all duration-200 hover:border-purple-500/50 hover:bg-slate-900/60 shadow"
+                    >
+                        <div class="min-w-0 pr-4">
+                            <h3 class="truncate text-sm font-black text-white uppercase tracking-wide">
+                                {{ user.name }}
+                            </h3>
+                            <p class="text-xs text-purple-400 font-bold font-mono mt-0.5">
+                                @{{ user.username }}
+                            </p>
+                        </div>
+                        <Link
+                            :href="`/@${user.username}`"
+                            class="flex-shrink-0 rounded-xl border border-amber-400/20 bg-amber-400/10 px-4 py-2 text-xs font-black text-amber-400 transition hover:bg-amber-450 hover:text-slate-955"
+                        >
+                            View Universe
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Auth Modal Overlay -->
+        <div
+            v-if="isAuthModalOpen"
+            class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 p-4 backdrop-blur-md"
+        >
+            <div class="flex min-h-full items-center justify-center">
+                <div class="relative w-full max-w-md my-8">
+                <!-- Close Button -->
+                <button
+                    @click="isAuthModalOpen = false"
+                    class="absolute top-4 right-4 z-50 rounded-xl bg-slate-950 border border-slate-800 p-2 text-slate-400 hover:text-white transition"
+                    data-test="close-auth-modal"
                 >
+                    <X class="h-4 w-4" />
+                </button>
+
+                <!-- Forms Card Container -->
+                <Card class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl">
                     <div class="flex border-b border-slate-800 bg-slate-950/40">
                         <button
                             type="button"
-                            @click="setTab('login')"
+                            @click="activeTab = 'login'"
                             :class="[
                                 'flex-1 cursor-pointer border-b-2 py-4 text-center text-xs font-bold tracking-wider uppercase transition-all duration-200',
                                 activeTab === 'login'
@@ -107,7 +207,7 @@ const setTab = (tab: 'login' | 'register') => {
                         </button>
                         <button
                             type="button"
-                            @click="setTab('register')"
+                            @click="activeTab = 'register'"
                             :class="[
                                 'flex-1 cursor-pointer border-b-2 py-4 text-center text-xs font-bold tracking-wider uppercase transition-all duration-200',
                                 activeTab === 'register'
@@ -122,18 +222,10 @@ const setTab = (tab: 'login' | 'register') => {
 
                     <CardHeader class="px-8 pt-6 pb-0 text-center">
                         <CardTitle class="text-lg font-black text-white">
-                            {{
-                                activeTab === 'login'
-                                    ? 'Welcome Back'
-                                    : 'Get Started'
-                            }}
+                            {{ activeTab === 'login' ? 'Welcome Back' : 'Get Started' }}
                         </CardTitle>
                         <CardDescription class="mt-1 text-xs text-slate-400">
-                            {{
-                                activeTab === 'login'
-                                    ? 'Enter your email and password below to log in'
-                                    : 'Enter your details below to create your account'
-                            }}
+                            {{ activeTab === 'login' ? 'Enter your email and password below to log in' : 'Enter your details below to create your account' }}
                         </CardDescription>
                     </CardHeader>
 
@@ -177,9 +269,7 @@ const setTab = (tab: 'login' | 'register') => {
                                     </div>
 
                                     <div class="grid gap-2">
-                                        <div
-                                            class="flex items-center justify-between"
-                                        >
+                                        <div class="flex items-center justify-between">
                                             <Label
                                                 for="password"
                                                 class="text-[10px] font-bold tracking-wider text-slate-400 uppercase"
@@ -203,14 +293,10 @@ const setTab = (tab: 'login' | 'register') => {
                                             placeholder="Password"
                                             class="h-10 rounded-xl border-slate-800 bg-slate-950 text-white placeholder-slate-500 focus-visible:border-amber-400 focus-visible:ring-amber-500/30"
                                         />
-                                        <InputError
-                                            :message="errors.password"
-                                        />
+                                        <InputError :message="errors.password" />
                                     </div>
 
-                                    <div
-                                        class="flex items-center justify-between"
-                                    >
+                                    <div class="flex items-center justify-between">
                                         <Label
                                             for="remember"
                                             class="flex items-center space-x-3"
@@ -221,10 +307,7 @@ const setTab = (tab: 'login' | 'register') => {
                                                 :tabindex="3"
                                                 class="border-slate-800 text-slate-100 focus-visible:border-amber-400 focus-visible:ring-amber-500/30 data-[state=checked]:border-amber-400 data-[state=checked]:bg-amber-400 data-[state=checked]:text-slate-950"
                                             />
-                                            <span
-                                                class="cursor-pointer text-xs font-bold tracking-wide text-slate-400 uppercase"
-                                                >Remember me</span
-                                            >
+                                            <span class="cursor-pointer text-xs font-bold tracking-wide text-slate-400 uppercase">Remember me</span>
                                         </Label>
                                     </div>
 
@@ -243,16 +326,10 @@ const setTab = (tab: 'login' | 'register') => {
                         </div>
 
                         <!-- Register Form -->
-                        <div
-                            v-show="activeTab === 'register'"
-                            class="space-y-6"
-                        >
+                        <div v-show="activeTab === 'register'" class="space-y-6">
                             <Form
                                 v-bind="registerStore.form()"
-                                :reset-on-success="[
-                                    'password',
-                                    'password_confirmation',
-                                ]"
+                                :reset-on-success="['password', 'password_confirmation']"
                                 v-slot="{ errors, processing }"
                                 class="flex flex-col gap-6"
                             >
@@ -267,9 +344,7 @@ const setTab = (tab: 'login' | 'register') => {
                                             id="name"
                                             type="text"
                                             required
-                                            :autofocus="
-                                                activeTab === 'register'
-                                            "
+                                            :autofocus="activeTab === 'register'"
                                             :tabindex="1"
                                             autocomplete="name"
                                             name="name"
@@ -295,9 +370,7 @@ const setTab = (tab: 'login' | 'register') => {
                                             placeholder="username"
                                             class="h-10 rounded-xl border-slate-800 bg-slate-950 text-white placeholder-slate-500 focus-visible:border-amber-400 focus-visible:ring-amber-500/30"
                                         />
-                                        <InputError
-                                            :message="errors.username"
-                                        />
+                                        <InputError :message="errors.username" />
                                     </div>
 
                                     <div class="grid gap-2">
@@ -335,9 +408,7 @@ const setTab = (tab: 'login' | 'register') => {
                                             :passwordrules="passwordRules"
                                             class="h-10 rounded-xl border-slate-800 bg-slate-950 text-white placeholder-slate-500 focus-visible:border-amber-400 focus-visible:ring-amber-500/30"
                                         />
-                                        <InputError
-                                            :message="errors.password"
-                                        />
+                                        <InputError :message="errors.password" />
                                     </div>
 
                                     <div class="grid gap-2">
@@ -356,11 +427,7 @@ const setTab = (tab: 'login' | 'register') => {
                                             :passwordrules="passwordRules"
                                             class="h-10 rounded-xl border-slate-800 bg-slate-950 text-white placeholder-slate-500 focus-visible:border-amber-400 focus-visible:ring-amber-500/30"
                                         />
-                                        <InputError
-                                            :message="
-                                                errors.password_confirmation
-                                            "
-                                        />
+                                        <InputError :message="errors.password_confirmation" />
                                     </div>
 
                                     <button
@@ -378,56 +445,8 @@ const setTab = (tab: 'login' | 'register') => {
                         </div>
                     </CardContent>
                 </Card>
-
-                <!-- Public Universes Card -->
-                <Card
-                    v-if="publicUsers && publicUsers.length > 0"
-                    class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-xl backdrop-blur-md"
-                >
-                    <div class="mb-4">
-                        <h3
-                            class="flex items-center gap-2 text-sm font-bold text-white"
-                        >
-                            <span
-                                class="flex h-2 w-2 animate-pulse rounded-full bg-emerald-500"
-                            ></span>
-                            Public Universes
-                        </h3>
-                        <p class="mt-1 text-xs text-slate-400">
-                            Explore other managers' public universe profiles &
-                            booking metrics.
-                        </p>
-                    </div>
-                    <div>
-                        <ul
-                            class="max-h-[200px] space-y-2 overflow-y-auto pr-1"
-                        >
-                            <li
-                                v-for="user in publicUsers"
-                                :key="user.id"
-                                class="flex items-center justify-between rounded-xl border border-slate-800/60 bg-slate-950/40 p-3 transition-all duration-200 hover:border-amber-500/40"
-                            >
-                                <div class="min-w-0">
-                                    <p
-                                        class="truncate text-xs font-bold text-white"
-                                    >
-                                        {{ user.name }}
-                                    </p>
-                                    <p class="text-[10px] text-slate-500">
-                                        @{{ user.username }}
-                                    </p>
-                                </div>
-                                <Link
-                                    :href="`/@${user.username}`"
-                                    class="rounded-lg border border-amber-400/20 bg-amber-400/10 px-2.5 py-1 text-[10px] font-bold text-amber-400 transition-all duration-200 hover:bg-amber-400 hover:text-slate-950"
-                                >
-                                    View Universe
-                                </Link>
-                            </li>
-                        </ul>
-                    </div>
-                </Card>
             </div>
         </div>
     </div>
+</div>
 </template>

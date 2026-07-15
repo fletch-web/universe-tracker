@@ -234,7 +234,27 @@ div[class*="bg-slate-900/40"] {
     padding-bottom: 1.25rem !important;
     padding-top: 0.5rem !important;
 }
+/* Custom Scrollbar Styles for Purple-Silver Theme */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
 
+::-webkit-scrollbar-track {
+    background: rgba(12, 6, 24, 0.4);
+}
 
+::-webkit-scrollbar-thumb {
+    background: #3b1e69; /* Deep purple */
+    border-radius: 9999px;
+}
 
+::-webkit-scrollbar-thumb:hover {
+    background: #6a3aa8; /* Bright purple */
+}
 
+/* Firefox scrollbar compatibility */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #3b1e69 rgba(12, 6, 24, 0.4);
+}

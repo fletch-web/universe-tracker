@@ -24,11 +24,11 @@ class PublicUniverseController extends Controller
         $userId = $user->id;
 
         return Inertia::render('Dashboard', [
-            'shows' => Show::where('user_id', $userId)->get(),
-            'superstars' => Superstar::where('user_id', $userId)->with('show')->get(),
-            'teams' => Team::where('user_id', $userId)->with('superstars')->get(),
-            'paginatedSuperstars' => Inertia::scroll(fn () => Superstar::where('user_id', $userId)->with('show')->paginate(10)),
-            'paginatedTeams' => Inertia::scroll(fn () => Team::where('user_id', $userId)->with('superstars')->paginate(10)),
+            'shows' => Show::where('user_id', $userId)->orderBy('name')->get(),
+            'superstars' => Superstar::where('user_id', $userId)->with('show')->orderBy('name')->get(),
+            'teams' => Team::where('user_id', $userId)->with('superstars')->orderBy('name')->get(),
+            'paginatedSuperstars' => Inertia::scroll(fn () => Superstar::where('user_id', $userId)->with('show')->orderBy('name')->paginate(10)),
+            'paginatedTeams' => Inertia::scroll(fn () => Team::where('user_id', $userId)->with('superstars')->orderBy('name')->paginate(10)),
             'championships' => Championship::where('user_id', $userId)->with(['show', 'championSuperstar', 'championTeam'])->get(),
             'storylines' => Storyline::where('user_id', $userId)->with('events')->get(),
             'history' => ShowLog::whereHas('show', function ($q) use ($userId) {

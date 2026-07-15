@@ -48,27 +48,69 @@ function route(name: string, param?: string | number): string {
     }
 }
 
-// Roster Filter brand
+// Roster Filter brand & Search
 const filterRosterBrand = ref('ALL');
+const searchQuery = ref('');
 
 const filteredSuperstars = computed(() => {
-    if (filterRosterBrand.value === 'ALL') {
-        return props.superstars;
+    let result = props.superstars;
+
+    if (filterRosterBrand.value !== 'ALL') {
+        result = result.filter(
+            (s) => s.show_id === Number(filterRosterBrand.value),
+        );
     }
 
-    return props.superstars.filter(
-        (s) => s.show_id === Number(filterRosterBrand.value),
-    );
+    if (searchQuery.value.trim() !== '') {
+        const query = searchQuery.value.toLowerCase();
+        result = result.filter((s) => s.name.toLowerCase().includes(query));
+    }
+
+    return result;
 });
 
 const filteredPaginatedSuperstars = computed(() => {
-    if (filterRosterBrand.value === 'ALL') {
-        return props.paginatedSuperstars.data;
+    let result = props.paginatedSuperstars.data;
+
+    if (filterRosterBrand.value !== 'ALL') {
+        result = result.filter(
+            (s) => s.show_id === Number(filterRosterBrand.value),
+        );
     }
 
-    return props.paginatedSuperstars.data.filter(
-        (s) => s.show_id === Number(filterRosterBrand.value),
-    );
+    if (searchQuery.value.trim() !== '') {
+        const query = searchQuery.value.toLowerCase();
+
+        return props.superstars.filter(
+            (s) => (filterRosterBrand.value === 'ALL' || s.show_id === Number(filterRosterBrand.value)) &&
+                   s.name.toLowerCase().includes(query)
+        );
+    }
+
+    return result;
+});
+
+const filteredTeams = computed(() => {
+    let result = props.teams;
+
+    if (searchQuery.value.trim() !== '') {
+        const query = searchQuery.value.toLowerCase();
+        result = result.filter((t) => t.name.toLowerCase().includes(query));
+    }
+
+    return result;
+});
+
+const filteredPaginatedTeams = computed(() => {
+    const result = props.paginatedTeams.data;
+
+    if (searchQuery.value.trim() !== '') {
+        const query = searchQuery.value.toLowerCase();
+
+        return props.teams.filter((t) => t.name.toLowerCase().includes(query));
+    }
+
+    return result;
 });
 
 // Draft Modal state
@@ -330,25 +372,38 @@ function compressAndConvertImage(
                 </div>
             </div>
 
-            <!-- Roster Filtering -->
+            <!-- Roster Filtering & Search -->
             <div
-                class="flex flex-col justify-center"
+                class="flex flex-col justify-center space-y-4 md:space-y-0 md:flex-row md:items-center md:space-x-4"
                 :class="{
                     'md:border-r md:border-slate-800 md:pr-6': !isReadOnly,
                 }"
             >
-                <h3 class="mb-2 text-xs font-bold text-white">
-                    Roster Brand Filtering
-                </h3>
-                <select
-                    v-model="filterRosterBrand"
-                    class="max-w-[200px] rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-white focus:border-amber-400 focus:outline-none"
-                >
-                    <option value="ALL">All Active Shows</option>
-                    <option v-for="s in shows" :key="s.id" :value="s.id">
-                        {{ s.name }}
-                    </option>
-                </select>
+                <div>
+                    <h3 class="mb-2 text-xs font-bold text-white">
+                        Roster Brand Filtering
+                    </h3>
+                    <select
+                        v-model="filterRosterBrand"
+                        class="w-full min-w-[150px] rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-white focus:border-amber-400 focus:outline-none"
+                    >
+                        <option value="ALL">All Active Shows</option>
+                        <option v-for="s in shows" :key="s.id" :value="s.id">
+                            {{ s.name }}
+                        </option>
+                    </select>
+                </div>
+                <div>
+                    <h3 class="mb-2 text-xs font-bold text-white">
+                        Search Roster
+                    </h3>
+                    <input
+                        type="text"
+                        v-model="searchQuery"
+                        placeholder="Search superstars/factions..."
+                        class="w-full min-w-[200px] rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-400 focus:outline-none"
+                    />
+                </div>
             </div>
 
             <!-- Perform Draft -->
@@ -723,7 +778,7 @@ function compressAndConvertImage(
                         <UsersRound class="text-slate-450 h-4 w-4" /> Tag Teams & Faction Standings
                     </h3>
                     <div
-                        v-if="teams.length === 0"
+                        v-if="filteredTeams.length === 0"
                         class="py-6 text-center text-xs text-slate-500"
                     >
                         No tag team factions assembled yet.
@@ -736,7 +791,7 @@ function compressAndConvertImage(
                     >
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div
-                                v-for="t in paginatedTeams.data"
+                                v-for="t in filteredPaginatedTeams"
                                 :key="t.id"
                                 class="group relative space-y-1.5 rounded-xl border border-slate-800 bg-slate-900/60 p-3.5"
                             >

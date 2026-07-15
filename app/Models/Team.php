@@ -25,6 +25,6 @@ class Team extends Model
      */
     public function superstars(): BelongsToMany
     {
-        return $this->belongsToMany(Superstar::class);
+        return $this->belongsToMany(Superstar::class)->orderBy('name');
     }
 }
