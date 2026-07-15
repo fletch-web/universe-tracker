@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { useForm, router } from '@inertiajs/vue3';
 import { Trophy, Tv, Pencil, Trash, Sparkles } from '@lucide/vue';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import type { Show, Superstar, Team, Championship } from '@/types';
 
-defineProps<{
+const props = defineProps<{
     shows: Show[];
     superstars: Superstar[];
     teams: Team[];
@@ -16,9 +16,33 @@ const editChampionshipId = ref<number | null>(null);
 
 const championshipForm = useForm({
     name: '',
-    show_id: '' as string | number,
+    show_id: '' as string | number | null,
     type: 'Singles' as 'Singles' | 'TagTeam',
     champion_id: 'VACANT' as string | number,
+});
+
+const nonPleShows = computed(() => props.shows.filter((s) => !s.is_ple));
+
+const eligibleSuperstars = computed(() => {
+    if (!championshipForm.show_id) {
+        return props.superstars;
+    }
+
+    const showId = Number(championshipForm.show_id);
+
+    return props.superstars.filter((s) => s.show_id === showId);
+});
+
+const eligibleTeams = computed(() => {
+    if (!championshipForm.show_id) {
+        return props.teams;
+    }
+
+    const showId = Number(championshipForm.show_id);
+
+    return props.teams.filter((t) =>
+        t.superstars && t.superstars.some((s) => s.show_id === showId)
+    );
 });
 
 function route(name: string, param?: string | number): string {
@@ -135,12 +159,11 @@ const deleteChampionship = (id: number) => {
                         >
                         <select
                             v-model="championshipForm.show_id"
-                            required
                             class="w-full rounded-xl border border-slate-800 bg-slate-955 px-4 py-2.5 text-xs text-white focus:border-amber-400 focus:outline-none"
                         >
-                            <option value="" disabled>Select Show</option>
+                            <option value="">Independent (Any Show/Superstar)</option>
                             <option
-                                v-for="s in shows"
+                                v-for="s in nonPleShows"
                                 :key="s.id"
                                 :value="s.id"
                             >
@@ -165,7 +188,7 @@ const deleteChampionship = (id: number) => {
                             v-if="championshipForm.type === 'Singles'"
                         >
                             <option
-                                v-for="s in superstars"
+                                v-for="s in eligibleSuperstars"
                                 :key="s.id"
                                 :value="s.id"
                             >
@@ -174,7 +197,7 @@ const deleteChampionship = (id: number) => {
                         </template>
                         <template v-else>
                             <option
-                                v-for="t in teams"
+                                v-for="t in eligibleTeams"
                                 :key="t.id"
                                 :value="t.id"
                             >

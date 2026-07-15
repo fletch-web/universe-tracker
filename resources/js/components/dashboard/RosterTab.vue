@@ -258,6 +258,17 @@ const teamForm = useForm({
     name: '',
     members: [] as number[],
 });
+const teamMemberSearchQuery = ref('');
+
+const filteredSuperstarsForTeam = computed(() => {
+    if (!teamMemberSearchQuery.value.trim()) {
+        return props.superstars;
+    }
+
+    const query = teamMemberSearchQuery.value.toLowerCase();
+
+    return props.superstars.filter((s) => s.name.toLowerCase().includes(query));
+});
 
 const handleCreateTeam = () => {
     if (teamForm.members.length < 2) {
@@ -270,6 +281,7 @@ const handleCreateTeam = () => {
         preserveScroll: true,
         onSuccess: () => {
             teamForm.reset();
+            teamMemberSearchQuery.value = '';
         },
     });
 };
@@ -614,22 +626,32 @@ function compressAndConvertImage(
                         <div>
                             <label
                                 class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
-                                >Draft Members (Hold Ctrl/Cmd)</label
+                                >Draft Members</label
                             >
-                            <select
-                                v-model="teamForm.members"
-                                multiple
-                                required
-                                class="min-h-[130px] w-full rounded-xl border border-slate-800 bg-slate-955 px-4 py-2 text-xs text-white focus:border-amber-400 focus:outline-none"
-                            >
-                                <option
-                                    v-for="s in superstars"
+                            <input
+                                type="text"
+                                v-model="teamMemberSearchQuery"
+                                class="mb-2 w-full rounded-xl border border-slate-800 bg-slate-955 px-4 py-2 text-xs text-white focus:border-amber-400 focus:outline-none"
+                                placeholder="Search superstars..."
+                            />
+                            <div class="max-h-[150px] overflow-y-auto rounded-xl border border-slate-800 bg-slate-955 p-3 space-y-1.5">
+                                <label
+                                    v-for="s in filteredSuperstarsForTeam"
                                     :key="s.id"
-                                    :value="s.id"
+                                    class="flex items-center space-x-2 text-xs text-slate-300 hover:text-white cursor-pointer select-none"
                                 >
-                                    {{ s.name }}
-                                </option>
-                            </select>
+                                    <input
+                                        type="checkbox"
+                                        :value="s.id"
+                                        v-model="teamForm.members"
+                                        class="rounded border-slate-800 bg-slate-950 text-amber-400 focus:ring-amber-500/30"
+                                    />
+                                    <span>{{ s.name }}</span>
+                                </label>
+                                <div v-if="filteredSuperstarsForTeam.length === 0" class="text-slate-500 text-[10px] italic py-1">
+                                    No matching superstars.
+                                </div>
+                            </div>
                         </div>
                         <button
                             type="submit"
@@ -857,6 +879,7 @@ function compressAndConvertImage(
             :shows="shows"
             :superstars="superstars"
             :teams="teams"
+            :championships="championships"
             :isOpen="isDraftModalOpen"
             @close="isDraftModalOpen = false"
         />

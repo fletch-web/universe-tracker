@@ -12,10 +12,11 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int|null $show_id
  * @property string $date
+ * @property string|null $location
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['show_id', 'date'])]
+#[Fillable(['show_id', 'date', 'location'])]
 class ShowLog extends Model
 {
     /**

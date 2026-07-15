@@ -62,6 +62,7 @@ const FALLBACK_USER_IMG =
 
 const bookingShowSelect = ref<string | number>('');
 const bookingDate = ref(new Date().toISOString().split('T')[0]);
+const bookingLocation = ref<string>('');
 const bookingMatchType = ref<
     | 'Singles'
     | 'TagTeam'
@@ -86,33 +87,7 @@ const bookingOutcome = ref<'Decisive' | 'Draw'>('Decisive');
 const bookingWinner = ref<'1' | '2' | '3' | '4'>('1');
 const bookingStoryline = ref<string | number>('NONE');
 const bookingNotes = ref('');
-const bookingStipulationType = ref<string>('Normal');
-const bookingCustomStipulation = ref<string>('');
-
-const WWE_2K26_MATCH_TYPES = [
-    'Normal',
-    'Steel Cage',
-    'Hell in a Cell',
-    'Ladder',
-    'Table',
-    'TLC',
-    'Extreme Rules',
-    'Falls Count Anywhere',
-    'Iron Man',
-    'Submission',
-    'Last Man Standing',
-    'Backstage Brawl',
-    'Ambulance',
-    'Casket',
-    'Special Guest Referee',
-    'Elimination Chamber',
-    'Royal Rumble',
-    'WarGames',
-    'Handicap',
-    'Triple Threat',
-    'Fatal 4-Way',
-    'CUSTOM',
-];
+const bookingStipulation = ref<string>('');
 
 const stagedMatches = ref<StagedMatch[]>([]);
 const activeMatchPreview = ref<StagedMatch | null>(null);
@@ -605,13 +580,7 @@ const addMatchToStagingCard = () => {
         }
     }
 
-    let stipulation = '';
-
-    if (bookingStipulationType.value === 'CUSTOM') {
-        stipulation = bookingCustomStipulation.value.trim();
-    } else if (bookingStipulationType.value !== 'Normal') {
-        stipulation = bookingStipulationType.value;
-    }
+    const stipulation = bookingStipulation.value.trim();
 
     const newStagedMatch: StagedMatch = {
         id: 'm-staged-' + Date.now() + Math.floor(Math.random() * 100),
@@ -658,8 +627,7 @@ const addMatchToStagingCard = () => {
     activeMatchPreview.value = newStagedMatch;
 
     // Reset fields
-    bookingCustomStipulation.value = '';
-    bookingStipulationType.value = 'Normal';
+    bookingStipulation.value = '';
     bookingComp1.value = '';
     bookingComp2.value = '';
     bookingComp3.value = '';
@@ -682,20 +650,22 @@ const removeStagedMatch = (id: string) => {
 
 const commitShowToDatabaseLogs = () => {
     if (stagedMatches.value.length === 0) {
-return;
-}
+        return;
+    }
 
     router.post(
         route('booking.commit'),
         {
             show_id: bookingShowSelect.value,
             date: bookingDate.value,
+            location: bookingLocation.value.trim(),
             matches: stagedMatches.value,
         },
         {
             onSuccess: () => {
                 stagedMatches.value = [];
                 activeMatchPreview.value = null;
+                bookingLocation.value = '';
                 toast.success('Show card finalized, ranks metrics compiled and logged!');
                 emit('switch-tab', 'dashboard');
             },
@@ -755,6 +725,18 @@ return;
                     <input
                         type="date"
                         v-model="bookingDate"
+                        class="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white focus:border-amber-400 focus:outline-none"
+                    />
+                </div>
+                <div>
+                    <label
+                        class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
+                        >Show Location</label
+                    >
+                    <input
+                        type="text"
+                        v-model="bookingLocation"
+                        placeholder="e.g., Madison Square Garden"
                         class="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white focus:border-amber-400 focus:outline-none"
                     />
                 </div>
@@ -1043,38 +1025,17 @@ return;
                     </div>
 
                     <!-- Stipulation Line -->
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label
-                                class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
-                                >Stipulation</label
-                            >
-                            <select
-                                v-model="bookingStipulationType"
-                                class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-white focus:border-amber-400 focus:outline-none"
-                            >
-                                <option
-                                    v-for="stip in WWE_2K26_MATCH_TYPES"
-                                    :key="stip"
-                                    :value="stip"
-                                >
-                                    {{ stip }}
-                                </option>
-                            </select>
-                        </div>
-                        <div v-if="bookingStipulationType === 'CUSTOM'">
-                            <label
-                                class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
-                                >Custom Stipulation</label
-                            >
-                            <input
-                                type="text"
-                                v-model="bookingCustomStipulation"
-                                required
-                                class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-white focus:border-amber-400 focus:outline-none"
-                                placeholder="e.g., Boiler Room Brawl"
-                            />
-                        </div>
+                    <div>
+                        <label
+                            class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
+                            >Stipulation</label
+                        >
+                        <input
+                            type="text"
+                            v-model="bookingStipulation"
+                            class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-white focus:border-amber-400 focus:outline-none"
+                            placeholder="e.g., Hell in a Cell, Steel Cage, or leave empty for Normal Match"
+                        />
                     </div>
 
                     <!-- Outcome winner slot selection -->

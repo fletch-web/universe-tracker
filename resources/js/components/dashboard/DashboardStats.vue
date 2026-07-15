@@ -363,7 +363,7 @@ return match.winner_slot === 'Draw' ? 'Stalemate No Contest (Draw)' : '';
                                 {{ selectedShowLog.show ? selectedShowLog.show.name : 'Unknown Show' }}
                             </span>
                             <span class="text-[10px] text-slate-500 font-mono">
-                                ({{ selectedShowLog.date }})
+                                ({{ selectedShowLog.date }})<template v-if="selectedShowLog.location"> - {{ selectedShowLog.location }}</template>
                             </span>
                         </div>
                     </div>
@@ -550,7 +550,7 @@ return match.winner_slot === 'Draw' ? 'Stalemate No Contest (Draw)' : '';
                                 </span>
                                 <span
                                     class="font-mono text-[10px] text-slate-500"
-                                    >{{ h.date }}</span
+                                    >{{ h.date }}<template v-if="h.location"> - {{ h.location }}</template></span
                                 >
                             </div>
                             <div

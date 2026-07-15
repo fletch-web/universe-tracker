@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3';
 import { Sparkles, Tv, Users, CheckCircle2 } from '@lucide/vue';
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { toast } from 'vue-sonner';
-import type { Show, Superstar, Team } from '@/types';
+import type { Show, Superstar, Team, Championship } from '@/types';
 
 const props = defineProps<{
     shows: Show[];
     superstars: Superstar[];
     teams: Team[];
+    championships?: Championship[];
     isOpen: boolean;
 }>();
 
@@ -33,12 +34,37 @@ const draftResults = ref<Record<number, number>>({});
 const draftCurrentShowIndex = ref(0);
 const draftLogs = ref<string[]>([]);
 
+const excludedChampionIds = computed(() => {
+    if (!props.championships) {
+return [];
+}
+
+    const ids = new Set<number>();
+    props.championships.forEach((ch) => {
+        if (ch.show_id) {
+            if (ch.type === 'Singles' && ch.champion_superstar_id) {
+                ids.add(ch.champion_superstar_id);
+            } else if (ch.type === 'TagTeam' && ch.champion_team_id) {
+                const team = props.teams.find((t) => t.id === ch.champion_team_id);
+
+                if (team && team.superstars) {
+                    team.superstars.forEach((s) => ids.add(s.id));
+                }
+            }
+        }
+    });
+
+    return Array.from(ids);
+});
+
 const resetDraftState = () => {
     draftStage.value = 1;
     draftSelectedShows.value = props.shows
         .filter((s) => !s.is_ple)
         .map((s) => s.id);
-    draftEligibleSuperstars.value = props.superstars.map((s) => s.id);
+    draftEligibleSuperstars.value = props.superstars
+        .filter((s) => !excludedChampionIds.value.includes(s.id))
+        .map((s) => s.id);
     draftMode.value = 'manual';
     draftPool.value = [];
     draftResults.value = {};
@@ -337,9 +363,9 @@ const handleSaveDraft = () => {
                             <div class="flex gap-2">
                                 <button
                                     @click="
-                                        draftEligibleSuperstars = superstars.map(
-                                            (s) => s.id,
-                                        )
+                                        draftEligibleSuperstars = superstars
+                                            .filter((s) => !excludedChampionIds.includes(s.id))
+                                            .map((s) => s.id)
                                     "
                                     class="text-[9px] font-bold text-amber-400 uppercase hover:underline"
                                 >
@@ -355,7 +381,7 @@ const handleSaveDraft = () => {
                             </div>
                         </div>
                         <p class="text-[10px] text-slate-400">
-                            Only selected superstars (and their factions) will enter the draft pool.
+                            Only selected superstars (and their factions) will enter the draft pool. Champions assigned to a show are excluded from the draft pool and locked to their respective shows.
                         </p>
 
                         <div
@@ -364,18 +390,21 @@ const handleSaveDraft = () => {
                             <div
                                 v-for="s in superstars"
                                 :key="s.id"
-                                class="flex cursor-pointer items-center gap-2 rounded-lg border p-2 transition-all"
+                                class="flex items-center gap-2 rounded-lg border p-2 transition-all"
                                 :class="[
-                                    draftEligibleSuperstars.includes(s.id)
-                                        ? 'border-amber-400/60 bg-amber-400/5'
-                                        : 'border-slate-800 bg-slate-955/20 hover:border-slate-800',
+                                    excludedChampionIds.includes(s.id)
+                                        ? 'border-slate-800 bg-slate-900/30 opacity-50 cursor-not-allowed'
+                                        : draftEligibleSuperstars.includes(s.id)
+                                            ? 'border-amber-400/60 bg-amber-400/5 cursor-pointer'
+                                            : 'border-slate-800 bg-slate-955/20 hover:border-slate-800 cursor-pointer',
                                 ]"
                                 @click="
-                                    draftEligibleSuperstars.includes(s.id)
+                                    !excludedChampionIds.includes(s.id) &&
+                                    (draftEligibleSuperstars.includes(s.id)
                                         ? (draftEligibleSuperstars = draftEligibleSuperstars.filter(
                                               (id) => id !== s.id,
                                           ))
-                                        : draftEligibleSuperstars.push(s.id)
+                                        : draftEligibleSuperstars.push(s.id))
                                 "
                             >
                                 <img
@@ -388,8 +417,13 @@ const handleSaveDraft = () => {
                                     }"
                                 />
                                 <span
-                                    class="text-slate-350 truncate text-[10px] font-bold"
+                                    class="text-slate-350 truncate text-[10px] font-bold flex-1"
                                     >{{ s.name }}</span
+                                >
+                                <span
+                                    v-if="excludedChampionIds.includes(s.id)"
+                                    class="text-[8px] font-bold text-amber-500 uppercase tracking-wide"
+                                    >🏆 Locked</span
                                 >
                             </div>
                         </div>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Championship;
+use App\Models\Show;
 use App\Models\Superstar;
 use App\Models\Team;
 use Illuminate\Http\RedirectResponse;
@@ -16,16 +17,23 @@ class ChampionshipController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'show_id' => [
-                'required',
+                'nullable',
                 Rule::exists('shows', 'id')->where('user_id', auth()->id()),
             ],
             'type' => 'required|string|in:Singles,TagTeam',
             'champion_id' => 'nullable',
         ]);
 
+        if (! empty($validated['show_id'])) {
+            $show = Show::where('id', $validated['show_id'])->where('user_id', auth()->id())->first();
+            if ($show && $show->is_ple) {
+                return back()->withErrors(['show_id' => 'Championships cannot be assigned to PLE shows.']);
+            }
+        }
+
         $data = [
             'name' => $validated['name'],
-            'show_id' => $validated['show_id'],
+            'show_id' => $validated['show_id'] ?: null,
             'type' => $validated['type'],
             'champion_superstar_id' => null,
             'champion_team_id' => null,
@@ -63,16 +71,23 @@ class ChampionshipController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'show_id' => [
-                'required',
+                'nullable',
                 Rule::exists('shows', 'id')->where('user_id', auth()->id()),
             ],
             'type' => 'required|string|in:Singles,TagTeam',
             'champion_id' => 'nullable',
         ]);
 
+        if (! empty($validated['show_id'])) {
+            $show = Show::where('id', $validated['show_id'])->where('user_id', auth()->id())->first();
+            if ($show && $show->is_ple) {
+                return back()->withErrors(['show_id' => 'Championships cannot be assigned to PLE shows.']);
+            }
+        }
+
         $data = [
             'name' => $validated['name'],
-            'show_id' => $validated['show_id'],
+            'show_id' => $validated['show_id'] ?: null,
             'type' => $validated['type'],
             'champion_superstar_id' => null,
             'champion_team_id' => null,

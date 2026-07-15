@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Championship;
 use App\Models\Show;
 use App\Models\Superstar;
+use App\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -41,9 +43,41 @@ class DraftController extends Controller
             abort(403, 'Unauthorized or PLE shows in draft.');
         }
 
-        DB::transaction(function () use ($validated) {
+        // Find championships that belong to a show for this user
+        $championships = Championship::where('user_id', $userId)
+            ->whereNotNull('show_id')
+            ->get();
+
+        $excludedSuperstarIds = [];
+        $championshipShowMapping = [];
+
+        foreach ($championships as $championship) {
+            if ($championship->type === 'Singles') {
+                if ($championship->champion_superstar_id) {
+                    $excludedSuperstarIds[] = $championship->champion_superstar_id;
+                    $championshipShowMapping[$championship->champion_superstar_id] = $championship->show_id;
+                }
+            } else {
+                if ($championship->champion_team_id) {
+                    $team = Team::with('superstars')->find($championship->champion_team_id);
+                    if ($team) {
+                        foreach ($team->superstars as $superstar) {
+                            $excludedSuperstarIds[] = $superstar->id;
+                            $championshipShowMapping[$superstar->id] = $championship->show_id;
+                        }
+                    }
+                }
+            }
+        }
+
+        DB::transaction(function () use ($validated, $excludedSuperstarIds, $championshipShowMapping) {
             foreach ($validated['draft'] as $superstarId => $showId) {
-                Superstar::where('id', $superstarId)->update(['show_id' => $showId]);
+                if (in_array($superstarId, $excludedSuperstarIds)) {
+                    $champShowId = $championshipShowMapping[$superstarId];
+                    Superstar::where('id', $superstarId)->update(['show_id' => $champShowId]);
+                } else {
+                    Superstar::where('id', $superstarId)->update(['show_id' => $showId]);
+                }
             }
         });
 

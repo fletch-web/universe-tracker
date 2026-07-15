@@ -25,6 +25,7 @@ class BookingController extends Controller
                 Rule::exists('shows', 'id')->where('user_id', auth()->id()),
             ],
             'date' => 'required|date',
+            'location' => 'nullable|string|max:255',
             'matches' => 'required|array',
             'matches.*.division' => 'required|string|in:Singles,TagTeam,TripleThreat,Fatal4Way,TripleThreatTag,Fatal4WayTag,ThreeOnThreeTag,FourOnFourTag,Segment',
             'matches.*.c1Id' => 'nullable',
@@ -46,17 +47,19 @@ class BookingController extends Controller
 
         $showId = $request->input('show_id');
         $date = $request->input('date');
+        $location = $request->input('location');
         $matchesData = $request->input('matches');
         $show = Show::findOrFail($showId);
         if (! $show instanceof Show || $show->user_id !== auth()->id()) {
             abort(403);
         }
 
-        DB::transaction(function () use ($show, $date, $matchesData) {
+        DB::transaction(function () use ($show, $date, $location, $matchesData) {
             // 1. Create the ShowLog
             $showLog = ShowLog::create([
                 'show_id' => $show->id,
                 'date' => $date,
+                'location' => $location,
             ]);
 
             // 2. Process each match/segment
