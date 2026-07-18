@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('match_logs', function (Blueprint $table) {
-            $table->json('team1_superstar_ids')->nullable()->after('c4_team_id');
+            $table->json('team1_superstar_ids')->nullable()->after('stipulation');
             $table->json('team2_superstar_ids')->nullable()->after('team1_superstar_ids');
         });
     }
