@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { useForm, router } from '@inertiajs/vue3';
+import { useForm, router, usePage } from '@inertiajs/vue3';
 import { Plus, Tv, Pencil, Trash } from '@lucide/vue';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import type { Show } from '@/types';
+
+const user = computed(() => usePage().props.auth.user as any);
 
 defineProps<{
     shows: Show[];
@@ -165,14 +167,24 @@ function compressAndConvertImage(
                     </div>
                     <div class="col-span-2">
                         <label
-                            class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
-                            >Logo Graphic</label
+                            class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase flex items-center justify-between"
                         >
+                            <span>Logo Graphic</span>
+                            <span v-if="!user.has_subscription" class="text-[9px] text-amber-500 font-medium flex items-center gap-0.5 uppercase tracking-normal">
+                                🔒 Subscription req.
+                            </span>
+                        </label>
                         <input
                             type="file"
                             @change="selectShowImageFile"
                             accept="image/*"
-                            class="w-full cursor-pointer text-[10px] text-slate-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-2.5 file:py-1.5 file:text-[10px] file:font-semibold file:text-slate-200 hover:file:bg-slate-700"
+                            :disabled="!user.has_subscription"
+                            :class="[
+                                'w-full text-[10px] text-slate-400 file:mr-2 file:rounded-lg file:border-0 file:px-2.5 file:py-1.5 file:text-[10px] file:font-semibold transition-all',
+                                user.has_subscription
+                                    ? 'cursor-pointer file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700'
+                                    : 'cursor-not-allowed opacity-50 file:bg-slate-900 file:text-slate-500'
+                            ]"
                         />
                     </div>
                 </div>

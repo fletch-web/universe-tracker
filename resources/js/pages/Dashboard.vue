@@ -78,7 +78,7 @@ const handleClearData = () => {
 </script>
 
 <template>
-    <Head title="Universe Tracker - Booking Deck" />
+    <Head :title="owner ? owner.name + '\'s Universe - Universe Tracker' : 'Booking Deck - Universe Tracker'" />
 
     <div
         class="flex min-h-screen flex-col gap-6 bg-slate-950 p-6 font-sans text-slate-100"

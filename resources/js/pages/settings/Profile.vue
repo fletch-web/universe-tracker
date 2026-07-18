@@ -26,7 +26,7 @@ const user = computed(() => page.props.auth.user as any);
 </script>
 
 <template>
-    <Head title="Profile settings" />
+    <Head title="Profile Settings - Universe Tracker" />
 
     <div class="flex flex-col space-y-6">
         <!-- Profile Card Panel -->

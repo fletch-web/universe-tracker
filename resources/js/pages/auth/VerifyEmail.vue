@@ -20,7 +20,7 @@ defineProps<{
 </script>
 
 <template>
-    <Head title="Email verification" />
+    <Head title="Email Verification - Universe Tracker" />
 
     <div
         v-if="status === 'verification-link-sent'"

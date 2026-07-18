@@ -13,7 +13,15 @@ class ShowController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'color' => 'required|string|max:7',
-            'image' => 'nullable|string',
+            'image' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (! auth()->user()->has_subscription && ! empty($value)) {
+                        $fail('Subscription required to upload images.');
+                    }
+                },
+            ],
             'is_ple' => 'boolean|nullable',
         ]);
 
@@ -33,7 +41,15 @@ class ShowController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'color' => 'required|string|max:7',
-            'image' => 'nullable|string',
+            'image' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) use ($show) {
+                    if (! auth()->user()->has_subscription && ! empty($value) && $value !== $show->image) {
+                        $fail('Subscription required to upload images.');
+                    }
+                },
+            ],
             'is_ple' => 'boolean|nullable',
         ]);
 

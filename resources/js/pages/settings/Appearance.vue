@@ -17,7 +17,7 @@ defineOptions({
 </script>
 
 <template>
-    <Head title="Appearance settings" />
+    <Head title="Appearance Settings - Universe Tracker" />
 
     <h1 class="sr-only">Appearance settings</h1>
 

@@ -26,7 +26,7 @@ const inputEmail = ref(props.email);
 </script>
 
 <template>
-    <Head title="Reset password" />
+    <Head title="Reset Password - Universe Tracker" />
 
     <Form
         v-bind="update.form()"

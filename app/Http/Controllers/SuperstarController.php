@@ -22,7 +22,15 @@ class SuperstarController extends Controller
                     $q->where('is_ple', false)->orWhereNull('is_ple');
                 }),
             ],
-            'image' => 'nullable|string',
+            'image' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (! auth()->user()->has_subscription && ! empty($value)) {
+                        $fail('Subscription required to upload images.');
+                    }
+                },
+            ],
         ]);
 
         $validated['user_id'] = auth()->id();
@@ -49,7 +57,15 @@ class SuperstarController extends Controller
             'wins' => 'required|integer|min:0',
             'losses' => 'required|integer|min:0',
             'draws' => 'required|integer|min:0',
-            'image' => 'nullable|string',
+            'image' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) use ($superstar) {
+                    if (! auth()->user()->has_subscription && ! empty($value) && $value !== $superstar->image) {
+                        $fail('Subscription required to upload images.');
+                    }
+                },
+            ],
         ]);
 
         $superstar->update($validated);

@@ -27,7 +27,7 @@ defineProps<{
 </script>
 
 <template>
-    <Head title="Log in" />
+    <Head title="Log In - Universe Tracker" />
 
     <div
         v-if="status"

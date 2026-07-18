@@ -32,7 +32,7 @@ defineOptions({
 </script>
 
 <template>
-    <Head title="Security settings" />
+    <Head title="Security Settings - Universe Tracker" />
 
     <h1 class="sr-only">Security settings</h1>
 

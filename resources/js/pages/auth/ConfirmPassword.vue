@@ -22,7 +22,7 @@ defineOptions({
 </script>
 
 <template>
-    <Head title="Confirm password" />
+    <Head title="Confirm Password - Universe Tracker" />
 
     <PasskeyVerify
         :routes="{

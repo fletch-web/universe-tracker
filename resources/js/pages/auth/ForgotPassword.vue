@@ -22,7 +22,7 @@ defineProps<{
 </script>
 
 <template>
-    <Head title="Forgot password" />
+    <Head title="Forgot Password - Universe Tracker" />
 
     <div
         v-if="status"

@@ -18,7 +18,7 @@ use function Pest\Laravel\assertDatabaseMissing;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
+    $this->user = User::factory()->create(['has_subscription' => true]);
 });
 
 it('allows authenticated users to CRUD a show', function () {
@@ -765,4 +765,104 @@ it('prevents superstars from being assigned to PLE shows', function () {
             'image' => null,
         ])
         ->assertSessionHasErrors(['show_id']);
+});
+
+it('locks show image uploads for unsubscribed users', function () {
+    $unsubscribedUser = User::factory()->create(['has_subscription' => false]);
+
+    // Store fails with image
+    actingAs($unsubscribedUser)
+        ->post(route('shows.store'), [
+            'name' => 'Raw',
+            'color' => '#ff0000',
+            'image' => 'some_image_base64',
+        ])
+        ->assertSessionHasErrors(['image']);
+
+    // Store succeeds without image
+    actingAs($unsubscribedUser)
+        ->post(route('shows.store'), [
+            'name' => 'Raw',
+            'color' => '#ff0000',
+            'image' => null,
+        ])
+        ->assertRedirect();
+
+    $show = Show::where('user_id', $unsubscribedUser->id)->first();
+
+    // Update fails with new image
+    actingAs($unsubscribedUser)
+        ->put(route('shows.update', $show), [
+            'name' => 'Raw Live',
+            'color' => '#ff0000',
+            'image' => 'new_image_base64',
+        ])
+        ->assertSessionHasErrors(['image']);
+
+    // Update succeeds when image is unchanged
+    actingAs($unsubscribedUser)
+        ->put(route('shows.update', $show), [
+            'name' => 'Raw Live',
+            'color' => '#ff0000',
+            'image' => null,
+        ])
+        ->assertRedirect();
+});
+
+it('locks superstar image uploads for unsubscribed users', function () {
+    $unsubscribedUser = User::factory()->create(['has_subscription' => false]);
+    $show = Show::create([
+        'name' => 'Raw',
+        'color' => '#ff0000',
+        'image' => null,
+        'user_id' => $unsubscribedUser->id,
+    ]);
+
+    // Store fails with image
+    actingAs($unsubscribedUser)
+        ->post(route('superstars.store'), [
+            'name' => 'Seth Rollins',
+            'gender' => 'Male',
+            'show_id' => $show->id,
+            'image' => 'some_image_base64',
+        ])
+        ->assertSessionHasErrors(['image']);
+
+    // Store succeeds without image
+    actingAs($unsubscribedUser)
+        ->post(route('superstars.store'), [
+            'name' => 'Seth Rollins',
+            'gender' => 'Male',
+            'show_id' => $show->id,
+            'image' => null,
+        ])
+        ->assertRedirect();
+
+    $superstar = Superstar::where('user_id', $unsubscribedUser->id)->first();
+
+    // Update fails with new image
+    actingAs($unsubscribedUser)
+        ->put(route('superstars.update', $superstar), [
+            'name' => 'Seth Rollins (Heel)',
+            'gender' => 'Male',
+            'show_id' => $show->id,
+            'wins' => 5,
+            'losses' => 0,
+            'draws' => 0,
+            'image' => 'new_image_base64',
+        ])
+        ->assertSessionHasErrors(['image']);
+
+    // Update succeeds when image is unchanged
+    actingAs($unsubscribedUser)
+        ->put(route('superstars.update', $superstar), [
+            'name' => 'Seth Rollins (Heel)',
+            'gender' => 'Male',
+            'show_id' => $show->id,
+            'wins' => 5,
+            'losses' => 0,
+            'draws' => 0,
+            'image' => null,
+        ])
+        ->assertRedirect();
 });

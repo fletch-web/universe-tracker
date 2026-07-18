@@ -23,7 +23,7 @@ defineOptions({
 </script>
 
 <template>
-    <Head title="Register" />
+    <Head title="Register - Universe Tracker" />
 
     <Form
         v-bind="store.form()"

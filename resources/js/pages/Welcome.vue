@@ -77,7 +77,7 @@ const setTab = (tab: 'login' | 'register') => {
 </script>
 
 <template>
-    <Head :title="'Explore Universes'" />
+    <Head title="Explore Universes - Universe Tracker" />
 
     <div class="relative flex min-h-svh flex-col overflow-hidden bg-slate-955 text-slate-100 font-sans">
         <!-- Background decorative ambient glows -->

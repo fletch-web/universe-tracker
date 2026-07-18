@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useForm, router, InfiniteScroll } from '@inertiajs/vue3';
+import { useForm, router, InfiniteScroll, usePage } from '@inertiajs/vue3';
 import {
     Plus,
     Users,
@@ -25,6 +25,7 @@ const props = defineProps<{
     isReadOnly: boolean;
     championships: Championship[];
 }>();
+const user = computed(() => usePage().props.auth.user as any);
 
 const FALLBACK_USER_IMG =
     "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100%' height='100%' fill='%230f172a'/><circle cx='50' cy='40' r='18' fill='%23334155'/><path d='M20,80 C20,60 30,55 50,55 C70,55 80,60 80,80 Z' fill='%23334155'/></svg>";
@@ -562,14 +563,24 @@ function compressAndConvertImage(
 
                         <div>
                             <label
-                                class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
-                                >Profile Portrait</label
+                                class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase flex items-center justify-between"
                             >
+                                <span>Profile Portrait</span>
+                                <span v-if="!user.has_subscription" class="text-[9px] text-amber-500 font-medium flex items-center gap-0.5 uppercase tracking-normal">
+                                    🔒 Subscription req.
+                                </span>
+                            </label>
                             <input
                                 type="file"
                                 @change="selectSuperstarImageFile"
                                 accept="image/*"
-                                class="w-full cursor-pointer text-[10px] text-slate-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-2.5 file:py-1.5 file:text-[10px] file:font-semibold file:text-slate-200 hover:file:bg-slate-700"
+                                :disabled="!user.has_subscription"
+                                :class="[
+                                    'w-full text-[10px] text-slate-400 file:mr-2 file:rounded-lg file:border-0 file:px-2.5 file:py-1.5 file:text-[10px] file:font-semibold transition-all',
+                                    user.has_subscription
+                                        ? 'cursor-pointer file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700'
+                                        : 'cursor-not-allowed opacity-50 file:bg-slate-900 file:text-slate-500'
+                                ]"
                             />
                         </div>
                         <div class="flex gap-2 pt-2">
