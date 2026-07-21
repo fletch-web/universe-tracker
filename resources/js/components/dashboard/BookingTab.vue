@@ -6,7 +6,7 @@ import {
     Trash,
     Sparkles,
 } from '@lucide/vue';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import type { Show, Superstar, Team, Championship, Storyline } from '@/types';
 
@@ -89,6 +89,17 @@ const bookingStoryline = ref<string | number>('NONE');
 const bookingNotes = ref('');
 const bookingStipulation = ref<string>('');
 
+watch([bookingMatchType, bookingTagTeamType], () => {
+    bookingIsTitleMatch.value = false;
+    bookingChampionshipId.value = 'NONE';
+});
+
+watch(bookingIsTitleMatch, (newVal) => {
+    if (!newVal) {
+        bookingChampionshipId.value = 'NONE';
+    }
+});
+
 const stagedMatches = ref<StagedMatch[]>([]);
 const activeMatchPreview = ref<StagedMatch | null>(null);
 
@@ -157,31 +168,18 @@ const bookingChampionships = computed(() => {
         'ThreeOnThreeTag',
         'FourOnFourTag',
     ].includes(bookingMatchType.value);
-    const isFactionBased =
-        isTeamMatch &&
-        !(
-            ['TagTeam', 'ThreeOnThreeTag', 'FourOnFourTag'].includes(
-                bookingMatchType.value,
-            ) && bookingTagTeamType.value === 'AdHoc'
-        );
 
     const isPLE = !!selectedBookingShow.value?.is_ple;
 
-    if (isTeamMatch && isFactionBased) {
-        return props.championships.filter(
-            (c) =>
-                (isPLE || c.show_id === Number(bookingShowSelect.value)) &&
-                c.type === 'TagTeam',
-        );
-    } else if (!isTeamMatch) {
-        return props.championships.filter(
-            (c) =>
-                (isPLE || c.show_id === Number(bookingShowSelect.value)) &&
-                c.type === 'Singles',
-        );
-    }
+    return props.championships.filter((c) => {
+        const matchesShow =
+            isPLE || !c.show_id || c.show_id === Number(bookingShowSelect.value);
+        const matchesType = isTeamMatch
+            ? c.type === 'TagTeam'
+            : c.type === 'Singles';
 
-    return [];
+        return matchesShow && matchesType;
+    });
 });
 
 const isTeamMatch = computed(() => {
@@ -555,7 +553,13 @@ const addMatchToStagingCard = () => {
     let championshipId: string | number = 'NONE';
     let championshipName: string | null = null;
 
-    if (bookingIsTitleMatch.value && bookingChampionshipId.value !== 'NONE') {
+    if (bookingIsTitleMatch.value) {
+        if (bookingChampionshipId.value === 'NONE') {
+            alert('Please select a championship title belt.');
+
+            return;
+        }
+
         const champ = props.championships.find(
             (c) => c.id === Number(bookingChampionshipId.value),
         );

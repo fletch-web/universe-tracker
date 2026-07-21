@@ -866,3 +866,98 @@ it('locks superstar image uploads for unsubscribed users', function () {
         ])
         ->assertRedirect();
 });
+
+it('allows booking championship title matches for independent titles without a show assigned', function () {
+    $show = Show::create(['name' => 'Raw', 'color' => '#ff0000', 'user_id' => $this->user->id]);
+    $s1 = Superstar::create(['name' => 'CM Punk', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0, 'user_id' => $this->user->id]);
+    $s2 = Superstar::create(['name' => 'Drew McIntyre', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0, 'user_id' => $this->user->id]);
+
+    $championship = Championship::create([
+        'name' => 'Independent Heavyweight Title',
+        'show_id' => null,
+        'type' => 'Singles',
+        'champion_superstar_id' => $s2->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    actingAs($this->user)
+        ->post(route('booking.commit'), [
+            'show_id' => $show->id,
+            'date' => '2026-07-21',
+            'matches' => [
+                [
+                    'division' => 'Singles',
+                    'c1Id' => $s1->id,
+                    'c2Id' => $s2->id,
+                    'outcome' => 'Decisive',
+                    'winnerSlot' => '1',
+                    'winningId' => $s1->id,
+                    'championshipId' => (string) $championship->id,
+                    'notes' => 'CM Punk wins the Independent Heavyweight Title.',
+                ],
+            ],
+        ])
+        ->assertRedirect();
+
+    $championship->refresh();
+    expect($championship->champion_superstar_id)->toBe($s1->id);
+
+    assertDatabaseHas('match_logs', [
+        'division' => 'Singles',
+        'winner_superstar_id' => $s1->id,
+        'championship_id' => $championship->id,
+    ]);
+});
+
+it('allows booking tag team championship title matches for teams and updates champion team', function () {
+    $show = Show::create(['name' => 'SmackDown', 'color' => '#0055ff', 'user_id' => $this->user->id]);
+    $s1 = Superstar::create(['name' => 'Jimmy Uso', 'gender' => 'Male', 'show_id' => $show->id, 'user_id' => $this->user->id]);
+    $s2 = Superstar::create(['name' => 'Jey Uso', 'gender' => 'Male', 'show_id' => $show->id, 'user_id' => $this->user->id]);
+    $s3 = Superstar::create(['name' => 'Kofi Kingston', 'gender' => 'Male', 'show_id' => $show->id, 'user_id' => $this->user->id]);
+    $s4 = Superstar::create(['name' => 'Xavier Woods', 'gender' => 'Male', 'show_id' => $show->id, 'user_id' => $this->user->id]);
+
+    $team1 = Team::create(['name' => 'The Usos', 'user_id' => $this->user->id]);
+    $team1->superstars()->attach([$s1->id, $s2->id]);
+
+    $team2 = Team::create(['name' => 'The New Day', 'user_id' => $this->user->id]);
+    $team2->superstars()->attach([$s3->id, $s4->id]);
+
+    $championship = Championship::create([
+        'name' => 'SmackDown Tag Team Championship',
+        'show_id' => $show->id,
+        'type' => 'TagTeam',
+        'champion_team_id' => $team2->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    actingAs($this->user)
+        ->post(route('booking.commit'), [
+            'show_id' => $show->id,
+            'date' => '2026-07-21',
+            'matches' => [
+                [
+                    'division' => 'TagTeam',
+                    'c1Id' => $team1->id,
+                    'c2Id' => $team2->id,
+                    'outcome' => 'Decisive',
+                    'winnerSlot' => '1',
+                    'winningId' => $team1->id,
+                    'championshipId' => (string) $championship->id,
+                    'notes' => 'The Usos defeat The New Day for the tag titles.',
+                ],
+            ],
+        ])
+        ->assertRedirect();
+
+    $championship->refresh();
+    expect($championship->champion_team_id)->toBe($team1->id);
+
+    assertDatabaseHas('match_logs', [
+        'division' => 'TagTeam',
+        'c1_team_id' => $team1->id,
+        'c2_team_id' => $team2->id,
+        'winner_team_id' => $team1->id,
+        'championship_id' => $championship->id,
+    ]);
+});
+
