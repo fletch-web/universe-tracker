@@ -1,11 +1,27 @@
 <script setup lang="ts">
-import { Tv, Users, Trophy, BookOpen, Star, History, ArrowLeft } from '@lucide/vue';
+import {
+    Tv,
+    Users,
+    Trophy,
+    BookOpen,
+    Star,
+    History,
+    ArrowLeft,
+} from '@lucide/vue';
 import { computed, ref } from 'vue';
-import type { Show, Superstar, Championship, Storyline, ShowLog } from '@/types';
+import type {
+    Show,
+    Superstar,
+    Team,
+    Championship,
+    Storyline,
+    ShowLog,
+} from '@/types';
 
 const props = defineProps<{
     shows: Show[];
     superstars: Superstar[];
+    teams: Team[];
     championships: Championship[];
     storylines: Storyline[];
     history: ShowLog[];
@@ -44,17 +60,23 @@ const getMatchCompetitorImage = (match: any, slot: 1 | 2 | 3 | 4) => {
         'FourOnFourTag',
     ].includes(match.division);
 
-    const isAdHoc = [
-        'TagTeam',
-        'ThreeOnThreeTag',
-        'FourOnFourTag',
-    ].includes(match.division) && match.team1_superstar_ids && match.team1_superstar_ids.length > 0;
+    const isAdHoc =
+        ['TagTeam', 'ThreeOnThreeTag', 'FourOnFourTag'].includes(
+            match.division,
+        ) &&
+        match.team1_superstar_ids &&
+        match.team1_superstar_ids.length > 0;
 
     if (isAdHoc) {
-        const ids = slot === 1 ? match.team1_superstar_ids : slot === 2 ? match.team2_superstar_ids : [];
+        const ids =
+            slot === 1
+                ? match.team1_superstar_ids
+                : slot === 2
+                  ? match.team2_superstar_ids
+                  : [];
 
         if (ids && ids.length > 0) {
-            const firstS = props.superstars.find(s => s.id === ids[0]);
+            const firstS = props.superstars.find((s) => s.id === ids[0]);
 
             return firstS ? firstS.image : null;
         }
@@ -64,45 +86,51 @@ const getMatchCompetitorImage = (match: any, slot: 1 | 2 | 3 | 4) => {
         let idVal = 0;
 
         if (slot === 1) {
-idVal = match.c1_superstar_id;
-} else if (slot === 2) {
-idVal = match.c2_superstar_id;
-} else if (slot === 3) {
-idVal = match.c3_superstar_id;
-} else if (slot === 4) {
-idVal = match.c4_superstar_id;
-}
+            idVal = match.c1_superstar_id;
+        } else if (slot === 2) {
+            idVal = match.c2_superstar_id;
+        } else if (slot === 3) {
+            idVal = match.c3_superstar_id;
+        } else if (slot === 4) {
+            idVal = match.c4_superstar_id;
+        }
 
         if (!idVal) {
-return null;
-}
+            return null;
+        }
 
-        const s = props.superstars.find(superstar => superstar.id === idVal);
+        const s = props.superstars.find((superstar) => superstar.id === idVal);
 
         return s ? s.image : null;
     } else {
         let idVal = 0;
 
         if (slot === 1) {
-idVal = match.c1_team_id;
-} else if (slot === 2) {
-idVal = match.c2_team_id;
-} else if (slot === 3) {
-idVal = match.c3_team_id;
-} else if (slot === 4) {
-idVal = match.c4_team_id;
-}
+            idVal = match.c1_team_id;
+        } else if (slot === 2) {
+            idVal = match.c2_team_id;
+        } else if (slot === 3) {
+            idVal = match.c3_team_id;
+        } else if (slot === 4) {
+            idVal = match.c4_team_id;
+        }
 
         if (!idVal) {
-return null;
-}
+            return null;
+        }
 
-        const t = props.teams.find(team => team.id === idVal);
+        const t = props.teams.find((team) => team.id === idVal);
 
         if (t && t.superstars && t.superstars.length > 0) {
-            const firstS = props.superstars.find(superstar => superstar.id === t.superstars[0].id);
+            const firstTeamSuperstar = t.superstars[0];
 
-            return firstS ? firstS.image : t.superstars[0].image;
+            if (firstTeamSuperstar) {
+                const firstS = props.superstars.find(
+                    (superstar) => superstar.id === firstTeamSuperstar.id,
+                );
+
+                return firstS ? firstS.image : firstTeamSuperstar.image;
+            }
         }
 
         return null;
@@ -118,57 +146,69 @@ const getMatchCompetitorName = (match: any, slot: 1 | 2 | 3 | 4) => {
         'FourOnFourTag',
     ].includes(match.division);
 
-    const isAdHoc = [
-        'TagTeam',
-        'ThreeOnThreeTag',
-        'FourOnFourTag',
-    ].includes(match.division) && match.team1_superstar_ids && match.team1_superstar_ids.length > 0;
+    const isAdHoc =
+        ['TagTeam', 'ThreeOnThreeTag', 'FourOnFourTag'].includes(
+            match.division,
+        ) &&
+        match.team1_superstar_ids &&
+        match.team1_superstar_ids.length > 0;
 
     if (isAdHoc) {
-        const ids = slot === 1 ? match.team1_superstar_ids : slot === 2 ? match.team2_superstar_ids : [];
+        const ids =
+            slot === 1
+                ? match.team1_superstar_ids
+                : slot === 2
+                  ? match.team2_superstar_ids
+                  : [];
 
-        return ids
-            .map(id => props.superstars.find(s => s.id === Number(id))?.name || '')
-            .filter(Boolean)
-            .join(' & ') || `Slot #${slot}`;
+        return (
+            ids
+                .map(
+                    (id: number | string) =>
+                        props.superstars.find((s) => s.id === Number(id))
+                            ?.name || '',
+                )
+                .filter(Boolean)
+                .join(' & ') || `Slot #${slot}`
+        );
     } else if (!isTeam) {
         let idVal = 0;
 
         if (slot === 1) {
-idVal = match.c1_superstar_id;
-} else if (slot === 2) {
-idVal = match.c2_superstar_id;
-} else if (slot === 3) {
-idVal = match.c3_superstar_id;
-} else if (slot === 4) {
-idVal = match.c4_superstar_id;
-}
+            idVal = match.c1_superstar_id;
+        } else if (slot === 2) {
+            idVal = match.c2_superstar_id;
+        } else if (slot === 3) {
+            idVal = match.c3_superstar_id;
+        } else if (slot === 4) {
+            idVal = match.c4_superstar_id;
+        }
 
         if (!idVal) {
-return '';
-}
+            return '';
+        }
 
-        const s = props.superstars.find(superstar => superstar.id === idVal);
+        const s = props.superstars.find((superstar) => superstar.id === idVal);
 
         return s ? s.name : '';
     } else {
         let idVal = 0;
 
         if (slot === 1) {
-idVal = match.c1_team_id;
-} else if (slot === 2) {
-idVal = match.c2_team_id;
-} else if (slot === 3) {
-idVal = match.c3_team_id;
-} else if (slot === 4) {
-idVal = match.c4_team_id;
-}
+            idVal = match.c1_team_id;
+        } else if (slot === 2) {
+            idVal = match.c2_team_id;
+        } else if (slot === 3) {
+            idVal = match.c3_team_id;
+        } else if (slot === 4) {
+            idVal = match.c4_team_id;
+        }
 
         if (!idVal) {
-return '';
-}
+            return '';
+        }
 
-        const t = props.teams.find(team => team.id === idVal);
+        const t = props.teams.find((team) => team.id === idVal);
 
         return t ? t.name : '';
     }
@@ -176,8 +216,10 @@ return '';
 
 const getMatchWinnerName = (match: any) => {
     if (match.outcome !== 'Decisive') {
-return match.winner_slot === 'Draw' ? 'Stalemate No Contest (Draw)' : '';
-}
+        return match.winner_slot === 'Draw'
+            ? 'Stalemate No Contest (Draw)'
+            : '';
+    }
 
     const slotNum = Number(match.winner_slot) as 1 | 2 | 3 | 4;
 
@@ -247,7 +289,7 @@ return match.winner_slot === 'Draw' ? 'Stalemate No Contest (Draw)' : '';
                     </h3>
                 </div>
                 <div
-                    class="text-yellow-450 rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-3"
+                    class="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-3 text-yellow-450"
                 >
                     <Trophy class="h-5 w-5" />
                 </div>
@@ -292,10 +334,7 @@ return match.winner_slot === 'Draw' ? 'Stalemate No Contest (Draw)' : '';
                 >
                     No competition records tracked yet.
                 </div>
-                <div
-                    v-else
-                    class="space-y-3.5 divide-y divide-slate-800/40"
-                >
+                <div v-else class="space-y-3.5 divide-y divide-slate-800/40">
                     <div
                         v-for="(s, index) in topSuperstars"
                         :key="s.id"
@@ -327,9 +366,7 @@ return match.winner_slot === 'Draw' ? 'Stalemate No Contest (Draw)' : '';
                                             : '#64748b',
                                     }"
                                 >
-                                    {{
-                                        s.show ? s.show.name : 'Independent'
-                                    }}
+                                    {{ s.show ? s.show.name : 'Independent' }}
                                 </p>
                             </div>
                         </div>
@@ -347,7 +384,9 @@ return match.winner_slot === 'Draw' ? 'Stalemate No Contest (Draw)' : '';
             >
                 <div v-if="selectedShowLog">
                     <!-- Detail View Header -->
-                    <div class="mb-5 flex items-center justify-between border-b border-slate-800 pb-4">
+                    <div
+                        class="mb-5 flex items-center justify-between border-b border-slate-800 pb-4"
+                    >
                         <button
                             @click="selectedShowLog = null"
                             class="flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs font-bold text-slate-300 transition-all hover:bg-slate-900 hover:text-white"
@@ -357,13 +396,27 @@ return match.winner_slot === 'Draw' ? 'Stalemate No Contest (Draw)' : '';
                         <div class="flex items-center gap-2">
                             <span
                                 class="inline-block h-3 w-3 rounded-full"
-                                :style="{ backgroundColor: selectedShowLog.show ? selectedShowLog.show.color : '#fff' }"
+                                :style="{
+                                    backgroundColor: selectedShowLog.show
+                                        ? selectedShowLog.show.color
+                                        : '#fff',
+                                }"
                             ></span>
-                            <span class="text-sm font-black text-white uppercase tracking-wider">
-                                {{ selectedShowLog.show ? selectedShowLog.show.name : 'Unknown Show' }}
+                            <span
+                                class="text-sm font-black tracking-wider text-white uppercase"
+                            >
+                                {{
+                                    selectedShowLog.show
+                                        ? selectedShowLog.show.name
+                                        : 'Unknown Show'
+                                }}
                             </span>
-                            <span class="text-[10px] text-slate-500 font-mono">
-                                ({{ selectedShowLog.date }})<template v-if="selectedShowLog.location"> - {{ selectedShowLog.location }}</template>
+                            <span class="font-mono text-[10px] text-slate-500">
+                                ({{ selectedShowLog.date }})<template
+                                    v-if="selectedShowLog.location"
+                                >
+                                    - {{ selectedShowLog.location }}</template
+                                >
                             </span>
                         </div>
                     </div>
@@ -377,130 +430,285 @@ return match.winner_slot === 'Draw' ? 'Stalemate No Contest (Draw)' : '';
                         >
                             <div class="flex flex-col items-center space-y-4">
                                 <!-- Title Match Header -->
-                                <div v-if="m.championship" class="flex flex-col items-center gap-0.5">
-                                    <span class="flex items-center gap-1 text-[9px] font-black tracking-widest text-amber-400 uppercase">
-                                        <Trophy class="h-3 w-3" /> Championship Match
+                                <div
+                                    v-if="m.championship"
+                                    class="flex flex-col items-center gap-0.5"
+                                >
+                                    <span
+                                        class="flex items-center gap-1 text-[9px] font-black tracking-widest text-amber-400 uppercase"
+                                    >
+                                        <Trophy class="h-3 w-3" /> Championship
+                                        Match
                                     </span>
-                                    <span class="text-xs font-bold text-white uppercase">
+                                    <span
+                                        class="text-xs font-bold text-white uppercase"
+                                    >
                                         {{ m.championship.name }}
                                     </span>
                                 </div>
 
                                 <!-- Stipulation & Division -->
                                 <div class="text-center">
-                                    <span class="text-xs font-extrabold text-purple-400 uppercase tracking-wider">
+                                    <span
+                                        class="text-xs font-extrabold tracking-wider text-purple-400 uppercase"
+                                    >
                                         {{ m.stipulation || 'Normal Match' }}
                                     </span>
-                                    <span class="block text-[9px] text-slate-500 font-semibold uppercase tracking-wider">
-                                        {{ m.division === 'Segment' ? 'Storyline Segment' : m.division }}
+                                    <span
+                                        class="block text-[9px] font-semibold tracking-wider text-slate-500 uppercase"
+                                    >
+                                        {{
+                                            m.division === 'Segment'
+                                                ? 'Storyline Segment'
+                                                : m.division
+                                        }}
                                     </span>
                                 </div>
 
                                 <!-- Competitors Display -->
                                 <div class="w-full">
                                     <!-- Segment Notes -->
-                                    <div v-if="m.division === 'Segment'" class="text-center italic text-slate-400 text-xs py-1">
+                                    <div
+                                        v-if="m.division === 'Segment'"
+                                        class="py-1 text-center text-xs text-slate-400 italic"
+                                    >
                                         "{{ m.notes }}"
                                     </div>
 
                                     <!-- Grid for matches -->
-                                    <div v-else
+                                    <div
+                                        v-else
                                         :class="[
-                                            'grid gap-4 items-start text-center',
-                                            m.division === 'TripleThreat' ? 'grid-cols-3' : 
-                                            ['Fatal4Way', 'Fatal4WayTag'].includes(m.division) ? 'grid-cols-4' : 'grid-cols-2'
+                                            'grid items-start gap-4 text-center',
+                                            m.division === 'TripleThreat'
+                                                ? 'grid-cols-3'
+                                                : [
+                                                        'Fatal4Way',
+                                                        'Fatal4WayTag',
+                                                    ].includes(m.division)
+                                                  ? 'grid-cols-4'
+                                                  : 'grid-cols-2',
                                         ]"
                                     >
                                         <!-- Competitor 1 -->
-                                        <div 
+                                        <div
                                             class="flex flex-col items-center space-y-1"
-                                            :class="{ 'opacity-40 grayscale': m.outcome === 'Decisive' && m.winner_slot !== '1' }"
+                                            :class="{
+                                                'opacity-40 grayscale':
+                                                    m.outcome === 'Decisive' &&
+                                                    m.winner_slot !== '1',
+                                            }"
                                         >
                                             <div class="relative">
                                                 <img
-                                                    :src="getMatchCompetitorImage(m, 1) || FALLBACK_USER_IMG"
+                                                    :src="
+                                                        getMatchCompetitorImage(
+                                                            m,
+                                                            1,
+                                                        ) || FALLBACK_USER_IMG
+                                                    "
                                                     class="h-14 w-14 rounded-full border-2 bg-slate-900 object-cover shadow"
-                                                    :style="{ borderColor: selectedShowLog.show ? selectedShowLog.show.color : '#6b21a8' }"
+                                                    :style="{
+                                                        borderColor:
+                                                            selectedShowLog.show
+                                                                ? selectedShowLog
+                                                                      .show
+                                                                      .color
+                                                                : '#6b21a8',
+                                                    }"
                                                 />
-                                                <div v-if="m.outcome === 'Decisive' && m.winner_slot === '1'" class="absolute -top-1.5 -right-1.5 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 text-[7px] font-black px-1 py-0.5 rounded-full shadow uppercase">
+                                                <div
+                                                    v-if="
+                                                        m.outcome ===
+                                                            'Decisive' &&
+                                                        m.winner_slot === '1'
+                                                    "
+                                                    class="absolute -top-1.5 -right-1.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 px-1 py-0.5 text-[7px] font-black text-slate-950 uppercase shadow"
+                                                >
                                                     🏆 WIN
                                                 </div>
                                             </div>
-                                            <span class="max-w-[80px] truncate text-[10px] font-bold text-white uppercase">
-                                                {{ getMatchCompetitorName(m, 1) }}
+                                            <span
+                                                class="max-w-[80px] truncate text-[10px] font-bold text-white uppercase"
+                                            >
+                                                {{
+                                                    getMatchCompetitorName(m, 1)
+                                                }}
                                             </span>
                                         </div>
 
                                         <!-- Competitor 2 -->
-                                        <div 
+                                        <div
                                             class="flex flex-col items-center space-y-1"
-                                            :class="{ 'opacity-40 grayscale': m.outcome === 'Decisive' && m.winner_slot !== '2' }"
+                                            :class="{
+                                                'opacity-40 grayscale':
+                                                    m.outcome === 'Decisive' &&
+                                                    m.winner_slot !== '2',
+                                            }"
                                         >
                                             <div class="relative">
                                                 <img
-                                                    :src="getMatchCompetitorImage(m, 2) || FALLBACK_USER_IMG"
+                                                    :src="
+                                                        getMatchCompetitorImage(
+                                                            m,
+                                                            2,
+                                                        ) || FALLBACK_USER_IMG
+                                                    "
                                                     class="h-14 w-14 rounded-full border-2 bg-slate-900 object-cover shadow"
-                                                    :style="{ borderColor: selectedShowLog.show ? selectedShowLog.show.color : '#6b21a8' }"
+                                                    :style="{
+                                                        borderColor:
+                                                            selectedShowLog.show
+                                                                ? selectedShowLog
+                                                                      .show
+                                                                      .color
+                                                                : '#6b21a8',
+                                                    }"
                                                 />
-                                                <div v-if="m.outcome === 'Decisive' && m.winner_slot === '2'" class="absolute -top-1.5 -right-1.5 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 text-[7px] font-black px-1 py-0.5 rounded-full shadow uppercase">
+                                                <div
+                                                    v-if="
+                                                        m.outcome ===
+                                                            'Decisive' &&
+                                                        m.winner_slot === '2'
+                                                    "
+                                                    class="absolute -top-1.5 -right-1.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 px-1 py-0.5 text-[7px] font-black text-slate-950 uppercase shadow"
+                                                >
                                                     🏆 WIN
                                                 </div>
                                             </div>
-                                            <span class="max-w-[80px] truncate text-[10px] font-bold text-white uppercase">
-                                                {{ getMatchCompetitorName(m, 2) }}
+                                            <span
+                                                class="max-w-[80px] truncate text-[10px] font-bold text-white uppercase"
+                                            >
+                                                {{
+                                                    getMatchCompetitorName(m, 2)
+                                                }}
                                             </span>
                                         </div>
 
                                         <!-- Competitor 3 -->
-                                        <div 
-                                            v-if="['TripleThreat', 'TripleThreatTag', 'Fatal4Way', 'Fatal4WayTag'].includes(m.division)"
+                                        <div
+                                            v-if="
+                                                [
+                                                    'TripleThreat',
+                                                    'TripleThreatTag',
+                                                    'Fatal4Way',
+                                                    'Fatal4WayTag',
+                                                ].includes(m.division)
+                                            "
                                             class="flex flex-col items-center space-y-1"
-                                            :class="{ 'opacity-40 grayscale': m.outcome === 'Decisive' && m.winner_slot !== '3' }"
+                                            :class="{
+                                                'opacity-40 grayscale':
+                                                    m.outcome === 'Decisive' &&
+                                                    m.winner_slot !== '3',
+                                            }"
                                         >
                                             <div class="relative">
                                                 <img
-                                                    :src="getMatchCompetitorImage(m, 3) || FALLBACK_USER_IMG"
+                                                    :src="
+                                                        getMatchCompetitorImage(
+                                                            m,
+                                                            3,
+                                                        ) || FALLBACK_USER_IMG
+                                                    "
                                                     class="h-14 w-14 rounded-full border-2 bg-slate-900 object-cover shadow"
-                                                    :style="{ borderColor: selectedShowLog.show ? selectedShowLog.show.color : '#6b21a8' }"
+                                                    :style="{
+                                                        borderColor:
+                                                            selectedShowLog.show
+                                                                ? selectedShowLog
+                                                                      .show
+                                                                      .color
+                                                                : '#6b21a8',
+                                                    }"
                                                 />
-                                                <div v-if="m.outcome === 'Decisive' && m.winner_slot === '3'" class="absolute -top-1.5 -right-1.5 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 text-[7px] font-black px-1 py-0.5 rounded-full shadow uppercase">
+                                                <div
+                                                    v-if="
+                                                        m.outcome ===
+                                                            'Decisive' &&
+                                                        m.winner_slot === '3'
+                                                    "
+                                                    class="absolute -top-1.5 -right-1.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 px-1 py-0.5 text-[7px] font-black text-slate-950 uppercase shadow"
+                                                >
                                                     🏆 WIN
                                                 </div>
                                             </div>
-                                            <span class="max-w-[80px] truncate text-[10px] font-bold text-white uppercase">
-                                                {{ getMatchCompetitorName(m, 3) }}
+                                            <span
+                                                class="max-w-[80px] truncate text-[10px] font-bold text-white uppercase"
+                                            >
+                                                {{
+                                                    getMatchCompetitorName(m, 3)
+                                                }}
                                             </span>
                                         </div>
 
                                         <!-- Competitor 4 -->
-                                        <div 
-                                            v-if="['Fatal4Way', 'Fatal4WayTag'].includes(m.division)"
+                                        <div
+                                            v-if="
+                                                [
+                                                    'Fatal4Way',
+                                                    'Fatal4WayTag',
+                                                ].includes(m.division)
+                                            "
                                             class="flex flex-col items-center space-y-1"
-                                            :class="{ 'opacity-40 grayscale': m.outcome === 'Decisive' && m.winner_slot !== '4' }"
+                                            :class="{
+                                                'opacity-40 grayscale':
+                                                    m.outcome === 'Decisive' &&
+                                                    m.winner_slot !== '4',
+                                            }"
                                         >
                                             <div class="relative">
                                                 <img
-                                                    :src="getMatchCompetitorImage(m, 4) || FALLBACK_USER_IMG"
+                                                    :src="
+                                                        getMatchCompetitorImage(
+                                                            m,
+                                                            4,
+                                                        ) || FALLBACK_USER_IMG
+                                                    "
                                                     class="h-14 w-14 rounded-full border-2 bg-slate-900 object-cover shadow"
-                                                    :style="{ borderColor: selectedShowLog.show ? selectedShowLog.show.color : '#6b21a8' }"
+                                                    :style="{
+                                                        borderColor:
+                                                            selectedShowLog.show
+                                                                ? selectedShowLog
+                                                                      .show
+                                                                      .color
+                                                                : '#6b21a8',
+                                                    }"
                                                 />
-                                                <div v-if="m.outcome === 'Decisive' && m.winner_slot === '4'" class="absolute -top-1.5 -right-1.5 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 text-[7px] font-black px-1 py-0.5 rounded-full shadow uppercase">
+                                                <div
+                                                    v-if="
+                                                        m.outcome ===
+                                                            'Decisive' &&
+                                                        m.winner_slot === '4'
+                                                    "
+                                                    class="absolute -top-1.5 -right-1.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 px-1 py-0.5 text-[7px] font-black text-slate-950 uppercase shadow"
+                                                >
                                                     🏆 WIN
                                                 </div>
                                             </div>
-                                            <span class="max-w-[80px] truncate text-[10px] font-bold text-white uppercase">
-                                                {{ getMatchCompetitorName(m, 4) }}
+                                            <span
+                                                class="max-w-[80px] truncate text-[10px] font-bold text-white uppercase"
+                                            >
+                                                {{
+                                                    getMatchCompetitorName(m, 4)
+                                                }}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Outcome summary bar -->
-                                <div v-if="m.division !== 'Segment'" class="w-full border-t border-slate-800 pt-3 text-center text-xs font-bold">
-                                    <span v-if="m.outcome === 'Decisive'" class="text-amber-400 uppercase tracking-wider">
+                                <div
+                                    v-if="m.division !== 'Segment'"
+                                    class="w-full border-t border-slate-800 pt-3 text-center text-xs font-bold"
+                                >
+                                    <span
+                                        v-if="m.outcome === 'Decisive'"
+                                        class="tracking-wider text-amber-400 uppercase"
+                                    >
                                         Winner: {{ getMatchWinnerName(m) }}
                                     </span>
-                                    <span v-else class="text-slate-400 uppercase tracking-wider">
+                                    <span
+                                        v-else
+                                        class="tracking-wider text-slate-400 uppercase"
+                                    >
                                         Result: Draw
                                     </span>
                                 </div>
@@ -550,7 +758,10 @@ return match.winner_slot === 'Draw' ? 'Stalemate No Contest (Draw)' : '';
                                 </span>
                                 <span
                                     class="font-mono text-[10px] text-slate-500"
-                                    >{{ h.date }}<template v-if="h.location"> - {{ h.location }}</template></span
+                                    >{{ h.date
+                                    }}<template v-if="h.location">
+                                        - {{ h.location }}</template
+                                    ></span
                                 >
                             </div>
                             <div

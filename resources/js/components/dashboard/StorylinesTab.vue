@@ -53,12 +53,10 @@ const handleCreateStoryline = () => {
                 <h3
                     class="mb-4 flex items-center gap-2 text-sm font-bold text-white"
                 >
-                    <BookOpen class="h-4 w-4 text-amber-400" /> Create Narrative Storyline
+                    <BookOpen class="h-4 w-4 text-amber-400" /> Create Narrative
+                    Storyline
                 </h3>
-                <form
-                    @submit.prevent="handleCreateStoryline"
-                    class="space-y-4"
-                >
+                <form @submit.prevent="handleCreateStoryline" class="space-y-4">
                     <div>
                         <label
                             class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
@@ -81,9 +79,7 @@ const handleCreateStoryline = () => {
                 </form>
             </div>
 
-            <div
-                :class="isReadOnly ? '' : 'border-t border-slate-800 pt-5'"
-            >
+            <div :class="isReadOnly ? '' : 'border-t border-slate-800 pt-5'">
                 <label
                     class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
                     >Select Storyline to View Timeline</label
@@ -113,7 +109,8 @@ const handleCreateStoryline = () => {
                 class="flex items-center justify-between text-sm font-bold text-white"
             >
                 <span class="flex items-center gap-2"
-                    ><BookOpen class="text-slate-450 h-4 w-4" /> Chronological Event Arc Timeline</span
+                    ><BookOpen class="text-slate-450 h-4 w-4" /> Chronological
+                    Event Arc Timeline</span
                 >
                 <span
                     v-if="activeStoryline"
@@ -129,7 +126,8 @@ const handleCreateStoryline = () => {
                     v-if="!activeStoryline"
                     class="py-12 text-center text-xs text-slate-500"
                 >
-                    Select or initialize a storyline arc timeline vector above to render segments logs.
+                    Select or initialize a storyline arc timeline vector above
+                    to render segments logs.
                 </div>
                 <div
                     v-else-if="
@@ -138,7 +136,8 @@ const handleCreateStoryline = () => {
                     "
                     class="py-12 text-center text-xs text-slate-500"
                 >
-                    This storyline holds no recorded data. Schedule bouts linked to this arc in the Booking engine tab.
+                    This storyline holds no recorded data. Schedule bouts linked
+                    to this arc in the Booking engine tab.
                 </div>
                 <div v-else class="relative space-y-6">
                     <!-- Timeline Line connector -->

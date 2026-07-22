@@ -98,6 +98,7 @@ export interface ShowLog {
     id: number;
     show_id: number | null;
     date: string;
+    location?: string | null;
     show?: Show;
     matches?: MatchLog[];
 }

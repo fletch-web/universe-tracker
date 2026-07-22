@@ -13,7 +13,13 @@ import {
 } from '@lucide/vue';
 import { ref, computed } from 'vue';
 import { toast } from 'vue-sonner';
-import type { Show, Superstar, Team, Championship, PaginatedData } from '@/types';
+import type {
+    Show,
+    Superstar,
+    Team,
+    Championship,
+    PaginatedData,
+} from '@/types';
 import DraftModal from './DraftModal.vue';
 
 const props = defineProps<{
@@ -83,8 +89,10 @@ const filteredPaginatedSuperstars = computed(() => {
         const query = searchQuery.value.toLowerCase();
 
         return props.superstars.filter(
-            (s) => (filterRosterBrand.value === 'ALL' || s.show_id === Number(filterRosterBrand.value)) &&
-                   s.name.toLowerCase().includes(query)
+            (s) =>
+                (filterRosterBrand.value === 'ALL' ||
+                    s.show_id === Number(filterRosterBrand.value)) &&
+                s.name.toLowerCase().includes(query),
         );
     }
 
@@ -192,11 +200,13 @@ const handleCsvUpload = (e: Event) => {
     const file = target.files?.[0];
 
     if (!file) {
-return;
-}
+        return;
+    }
 
     if (props.shows.length === 0) {
-        alert('Configure at least one default Active Show track before running data migrations.');
+        alert(
+            'Configure at least one default Active Show track before running data migrations.',
+        );
         target.value = '';
 
         return;
@@ -206,26 +216,36 @@ return;
     reader.onload = (evt) => {
         const text = evt.target?.result as string;
         const lines = text.split(/\r?\n/);
-        const superstarsList: Array<{ name: string; gender: string; brand: string }> = [];
+        const superstarsList: Array<{
+            name: string;
+            gender: string;
+            brand: string;
+        }> = [];
 
         if (lines.length < 2) {
-            alert('Empty file or missing headers. CSV must have Name, Gender, Brand headers.');
+            alert(
+                'Empty file or missing headers. CSV must have Name, Gender, Brand headers.',
+            );
             target.value = '';
 
             return;
         }
 
         const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
-        const nameIdx = headers.findIndex((h) => h.includes('name') || h.includes('superstar'));
+        const nameIdx = headers.findIndex(
+            (h) => h.includes('name') || h.includes('superstar'),
+        );
         const genderIdx = headers.findIndex((h) => h.includes('gender'));
-        const brandIdx = headers.findIndex((h) => h.includes('brand') || h.includes('show'));
+        const brandIdx = headers.findIndex(
+            (h) => h.includes('brand') || h.includes('show'),
+        );
 
         for (let i = 1; i < lines.length; i++) {
             const line = lines[i].trim();
 
             if (!line) {
-continue;
-}
+                continue;
+            }
 
             const cells = line.split(',').map((c) => c.trim());
             const name = nameIdx !== -1 ? cells[nameIdx] : cells[0];
@@ -246,7 +266,10 @@ continue;
                     target.value = '';
                 },
                 onError: (errors) => {
-                    toast.error('Failed to import roster: ' + Object.values(errors).join(', '));
+                    toast.error(
+                        'Failed to import roster: ' +
+                            Object.values(errors).join(', '),
+                    );
                 },
             },
         );
@@ -273,7 +296,9 @@ const filteredSuperstarsForTeam = computed(() => {
 
 const handleCreateTeam = () => {
     if (teamForm.members.length < 2) {
-        alert('A faction or tag team requires at least 2 rostered members selected.');
+        alert(
+            'A faction or tag team requires at least 2 rostered members selected.',
+        );
 
         return;
     }
@@ -300,14 +325,14 @@ const getSuperstarChampionships = (superstarId: number) => {
     );
     const tags = props.championships.filter((c) => {
         if (!c.champion_team_id) {
-return false;
-}
+            return false;
+        }
 
         const team = props.teams.find((t) => t.id === c.champion_team_id);
 
         if (!team || !team.superstars) {
-return false;
-}
+            return false;
+        }
 
         return team.superstars.some((member) => member.id === superstarId);
     });
@@ -373,7 +398,9 @@ function compressAndConvertImage(
                 </h3>
                 <p class="mb-4 text-[10px] text-slate-400">
                     Batch upload members directly. CSV header format required:
-                    <code class="font-mono text-amber-400">Name, Gender, Brand</code>
+                    <code class="font-mono text-amber-400"
+                        >Name, Gender, Brand</code
+                    >
                 </p>
                 <div class="flex items-center gap-3">
                     <input
@@ -387,7 +414,7 @@ function compressAndConvertImage(
 
             <!-- Roster Filtering & Search -->
             <div
-                class="flex flex-col justify-center space-y-4 md:space-y-0 md:flex-row md:items-center md:space-x-4"
+                class="flex flex-col justify-center space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-4"
                 :class="{
                     'md:border-r md:border-slate-800 md:pr-6': !isReadOnly,
                 }"
@@ -431,7 +458,8 @@ function compressAndConvertImage(
                     Superstar & Faction Draft
                 </h3>
                 <p class="mb-4 text-[10px] text-slate-400">
-                    Initiate a draft cycle to shuffle superstars and factions between shows.
+                    Initiate a draft cycle to shuffle superstars and factions
+                    between shows.
                 </p>
                 <div>
                     <button
@@ -508,7 +536,9 @@ function compressAndConvertImage(
                                         Select Show
                                     </option>
                                     <option
-                                        v-for="sh in shows.filter((s) => !s.is_ple)"
+                                        v-for="sh in shows.filter(
+                                            (s) => !s.is_ple,
+                                        )"
                                         :key="sh.id"
                                         :value="sh.id"
                                     >
@@ -563,10 +593,13 @@ function compressAndConvertImage(
 
                         <div>
                             <label
-                                class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase flex items-center justify-between"
+                                class="mb-1 block flex items-center justify-between text-[10px] font-bold tracking-wider text-slate-400 uppercase"
                             >
                                 <span>Profile Portrait</span>
-                                <span v-if="!user.has_subscription" class="text-[9px] text-amber-500 font-medium flex items-center gap-0.5 uppercase tracking-normal">
+                                <span
+                                    v-if="!user.has_subscription"
+                                    class="flex items-center gap-0.5 text-[9px] font-medium tracking-normal text-amber-500 uppercase"
+                                >
                                     🔒 Subscription req.
                                 </span>
                             </label>
@@ -576,10 +609,10 @@ function compressAndConvertImage(
                                 accept="image/*"
                                 :disabled="!user.has_subscription"
                                 :class="[
-                                    'w-full text-[10px] text-slate-400 file:mr-2 file:rounded-lg file:border-0 file:px-2.5 file:py-1.5 file:text-[10px] file:font-semibold transition-all',
+                                    'w-full text-[10px] text-slate-400 transition-all file:mr-2 file:rounded-lg file:border-0 file:px-2.5 file:py-1.5 file:text-[10px] file:font-semibold',
                                     user.has_subscription
                                         ? 'cursor-pointer file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700'
-                                        : 'cursor-not-allowed opacity-50 file:bg-slate-900 file:text-slate-500'
+                                        : 'cursor-not-allowed opacity-50 file:bg-slate-900 file:text-slate-500',
                                 ]"
                             />
                         </div>
@@ -617,10 +650,7 @@ function compressAndConvertImage(
                         <UsersRound class="text-amber-405 h-4 w-4" />
                         Assemble Tag Team / Faction
                     </h3>
-                    <form
-                        @submit.prevent="handleCreateTeam"
-                        class="space-y-4"
-                    >
+                    <form @submit.prevent="handleCreateTeam" class="space-y-4">
                         <div>
                             <label
                                 class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
@@ -645,11 +675,13 @@ function compressAndConvertImage(
                                 class="mb-2 w-full rounded-xl border border-slate-800 bg-slate-955 px-4 py-2 text-xs text-white focus:border-amber-400 focus:outline-none"
                                 placeholder="Search superstars..."
                             />
-                            <div class="max-h-[150px] overflow-y-auto rounded-xl border border-slate-800 bg-slate-955 p-3 space-y-1.5">
+                            <div
+                                class="max-h-[150px] space-y-1.5 overflow-y-auto rounded-xl border border-slate-800 bg-slate-955 p-3"
+                            >
                                 <label
                                     v-for="s in filteredSuperstarsForTeam"
                                     :key="s.id"
-                                    class="flex items-center space-x-2 text-xs text-slate-300 hover:text-white cursor-pointer select-none"
+                                    class="flex cursor-pointer items-center space-x-2 text-xs text-slate-300 select-none hover:text-white"
                                 >
                                     <input
                                         type="checkbox"
@@ -659,7 +691,12 @@ function compressAndConvertImage(
                                     />
                                     <span>{{ s.name }}</span>
                                 </label>
-                                <div v-if="filteredSuperstarsForTeam.length === 0" class="text-slate-500 text-[10px] italic py-1">
+                                <div
+                                    v-if="
+                                        filteredSuperstarsForTeam.length === 0
+                                    "
+                                    class="py-1 text-[10px] text-slate-500 italic"
+                                >
                                     No matching superstars.
                                 </div>
                             </div>
@@ -684,7 +721,8 @@ function compressAndConvertImage(
                     <h3
                         class="mb-3 flex items-center gap-2 text-sm font-bold text-white"
                     >
-                        <Users class="text-slate-450 h-4 w-4" /> Active Roster & Metrics Matrix (W-D-L)
+                        <Users class="text-slate-450 h-4 w-4" /> Active Roster &
+                        Metrics Matrix (W-D-L)
                     </h3>
                     <div
                         v-if="filteredSuperstars.length === 0"
@@ -692,117 +730,120 @@ function compressAndConvertImage(
                     >
                         No active combatants registered under this brand.
                     </div>
-                    <div
-                        v-else
-                        class="max-h-[300px] overflow-y-auto pr-1"
-                    >
+                    <div v-else class="max-h-[300px] overflow-y-auto pr-1">
                         <InfiniteScroll
                             data="paginatedSuperstars"
                             preserve-url
                             class="space-y-4"
                         >
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div
-                                v-for="s in filteredPaginatedSuperstars"
-                                :key="s.id"
-                                class="group relative flex items-center space-x-3.5 overflow-hidden rounded-xl border bg-slate-900/60 p-3 transition-all duration-200"
-                                :class="[
-                                    getSuperstarChampionships(s.id).length > 0
-                                        ? 'border-amber-500/80 shadow-md shadow-amber-500/5'
-                                        : 'border-slate-800',
-                                ]"
-                            >
-                                <!-- Championship Tooltip on Hover -->
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div
-                                    v-if="getSuperstarChampionships(s.id).length > 0"
-                                    class="pointer-events-none absolute top-[-1px] left-[-1px] z-20 flex h-[calc(100%+2px)] w-[calc(100%+2px)] items-center justify-center bg-slate-950/90 opacity-0 backdrop-blur-sm transition-all duration-200 group-hover:opacity-100"
+                                    v-for="s in filteredPaginatedSuperstars"
+                                    :key="s.id"
+                                    class="group relative flex items-center space-x-3.5 overflow-hidden rounded-xl border bg-slate-900/60 p-3 transition-all duration-200"
+                                    :class="[
+                                        getSuperstarChampionships(s.id).length >
+                                        0
+                                            ? 'border-amber-500/80 shadow-md shadow-amber-500/5'
+                                            : 'border-slate-800',
+                                    ]"
                                 >
-                                    <div class="px-3 text-center">
-                                        <div
-                                            class="mb-1.5 flex items-center justify-center gap-1 text-[10px] font-bold tracking-wider text-amber-400 uppercase"
-                                        >
-                                            <Trophy class="h-3 w-3" />
-                                            Current Titles
-                                        </div>
-                                        <ul class="space-y-1">
-                                            <li
-                                                v-for="c in getSuperstarChampionships(s.id)"
-                                                :key="c.id"
-                                                class="truncate text-[10px] font-semibold text-slate-200"
-                                            >
-                                                {{ c.name }}
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-
-                                <img
-                                    :src="s.image || FALLBACK_USER_IMG"
-                                    class="h-12 w-12 flex-shrink-0 rounded-lg border-2 bg-slate-950 object-cover shadow-sm"
-                                    :style="{
-                                        borderColor: s.show
-                                            ? s.show.color
-                                            : '#475569',
-                                    }"
-                                />
-                                <div class="min-w-0 flex-1">
-                                    <h4
-                                        class="truncate text-xs font-black text-white"
-                                    >
-                                        {{ s.name }}
-                                    </h4>
-                                    <p
-                                        class="mt-0.5 text-[10px] font-semibold"
-                                        :style="{
-                                            color: s.show
-                                                ? s.show.color
-                                                : '#64748b',
-                                        }"
-                                    >
-                                        {{
-                                            s.show
-                                                ? s.show.name
-                                                : 'Independent'
-                                        }}
-                                    </p>
+                                    <!-- Championship Tooltip on Hover -->
                                     <div
-                                        class="flex gap-2 pt-1 font-mono text-[9px] font-bold text-slate-400"
+                                        v-if="
+                                            getSuperstarChampionships(s.id)
+                                                .length > 0
+                                        "
+                                        class="pointer-events-none absolute top-[-1px] left-[-1px] z-20 flex h-[calc(100%+2px)] w-[calc(100%+2px)] items-center justify-center bg-slate-950/90 opacity-0 backdrop-blur-sm transition-all duration-200 group-hover:opacity-100"
                                     >
-                                        <span class="text-emerald-500"
-                                            >W: {{ s.wins }}</span
+                                        <div class="px-3 text-center">
+                                            <div
+                                                class="mb-1.5 flex items-center justify-center gap-1 text-[10px] font-bold tracking-wider text-amber-400 uppercase"
+                                            >
+                                                <Trophy class="h-3 w-3" />
+                                                Current Titles
+                                            </div>
+                                            <ul class="space-y-1">
+                                                <li
+                                                    v-for="c in getSuperstarChampionships(
+                                                        s.id,
+                                                    )"
+                                                    :key="c.id"
+                                                    class="truncate text-[10px] font-semibold text-slate-200"
+                                                >
+                                                    {{ c.name }}
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <img
+                                        :src="s.image || FALLBACK_USER_IMG"
+                                        class="h-12 w-12 flex-shrink-0 rounded-lg border-2 bg-slate-950 object-cover shadow-sm"
+                                        :style="{
+                                            borderColor: s.show
+                                                ? s.show.color
+                                                : '#475569',
+                                        }"
+                                    />
+                                    <div class="min-w-0 flex-1">
+                                        <h4
+                                            class="truncate text-xs font-black text-white"
                                         >
-                                        <span class="text-rose-500"
-                                            >L: {{ s.losses }}</span
+                                            {{ s.name }}
+                                        </h4>
+                                        <p
+                                            class="mt-0.5 text-[10px] font-semibold"
+                                            :style="{
+                                                color: s.show
+                                                    ? s.show.color
+                                                    : '#64748b',
+                                            }"
                                         >
-                                        <span>D: {{ s.draws }}</span>
+                                            {{
+                                                s.show
+                                                    ? s.show.name
+                                                    : 'Independent'
+                                            }}
+                                        </p>
+                                        <div
+                                            class="flex gap-2 pt-1 font-mono text-[9px] font-bold text-slate-400"
+                                        >
+                                            <span class="text-emerald-500"
+                                                >W: {{ s.wins }}</span
+                                            >
+                                            <span class="text-rose-500"
+                                                >L: {{ s.losses }}</span
+                                            >
+                                            <span>D: {{ s.draws }}</span>
+                                        </div>
+                                    </div>
+                                    <div
+                                        v-if="!isReadOnly"
+                                        class="flex space-x-0.5"
+                                    >
+                                        <button
+                                            @click="startSuperstarEdit(s)"
+                                            class="p-1.5 text-slate-500 transition hover:text-amber-400"
+                                        >
+                                            <Pencil class="h-3.5 w-3.5" />
+                                        </button>
+                                        <button
+                                            @click="deleteSuperstar(s.id)"
+                                            class="text-slate-650 p-1.5 transition hover:text-rose-400"
+                                        >
+                                            <UserX class="h-3.5 w-3.5" />
+                                        </button>
                                     </div>
                                 </div>
+                            </div>
+                            <template #loading>
                                 <div
-                                    v-if="!isReadOnly"
-                                    class="flex space-x-0.5"
+                                    class="animate-pulse py-2 text-center text-[10px] font-bold text-slate-400"
                                 >
-                                    <button
-                                        @click="startSuperstarEdit(s)"
-                                        class="p-1.5 text-slate-500 transition hover:text-amber-400"
-                                    >
-                                        <Pencil class="h-3.5 w-3.5" />
-                                    </button>
-                                    <button
-                                        @click="deleteSuperstar(s.id)"
-                                        class="text-slate-650 p-1.5 transition hover:text-rose-400"
-                                    >
-                                        <UserX class="h-3.5 w-3.5" />
-                                    </button>
+                                    Loading more combatants...
                                 </div>
-                            </div>
-                        </div>
-                        <template #loading>
-                            <div
-                                class="animate-pulse py-2 text-center text-[10px] font-bold text-slate-400"
-                            >
-                                Loading more combatants...
-                            </div>
-                        </template>
+                            </template>
                         </InfiniteScroll>
                     </div>
                 </div>
@@ -812,7 +853,8 @@ function compressAndConvertImage(
                     <h3
                         class="mb-3 flex items-center gap-2 text-sm font-bold text-white"
                     >
-                        <UsersRound class="text-slate-450 h-4 w-4" /> Tag Teams & Faction Standings
+                        <UsersRound class="text-slate-450 h-4 w-4" /> Tag Teams
+                        & Faction Standings
                     </h3>
                     <div
                         v-if="filteredTeams.length === 0"
@@ -820,73 +862,70 @@ function compressAndConvertImage(
                     >
                         No tag team factions assembled yet.
                     </div>
-                    <div
-                        v-else
-                        class="max-h-[300px] overflow-y-auto pr-1"
-                    >
+                    <div v-else class="max-h-[300px] overflow-y-auto pr-1">
                         <InfiniteScroll
                             data="paginatedTeams"
                             preserve-url
                             class="space-y-4"
                         >
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div
-                                v-for="t in filteredPaginatedTeams"
-                                :key="t.id"
-                                class="group relative space-y-1.5 rounded-xl border border-slate-800 bg-slate-900/60 p-3.5"
-                            >
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div
-                                    class="flex items-start justify-between"
+                                    v-for="t in filteredPaginatedTeams"
+                                    :key="t.id"
+                                    class="group relative space-y-1.5 rounded-xl border border-slate-800 bg-slate-900/60 p-3.5"
                                 >
-                                    <h4
-                                        class="truncate text-xs font-black text-amber-400"
+                                    <div
+                                        class="flex items-start justify-between"
                                     >
-                                        {{ t.name }}
-                                    </h4>
-                                    <button
-                                        v-if="!isReadOnly"
-                                        @click="deleteTeam(t.id)"
-                                        class="text-slate-600 transition hover:text-rose-400"
+                                        <h4
+                                            class="truncate text-xs font-black text-amber-400"
+                                        >
+                                            {{ t.name }}
+                                        </h4>
+                                        <button
+                                            v-if="!isReadOnly"
+                                            @click="deleteTeam(t.id)"
+                                            class="text-slate-600 transition hover:text-rose-400"
+                                        >
+                                            <Trash class="h-3.5 w-3.5" />
+                                        </button>
+                                    </div>
+                                    <p class="text-[10px] text-slate-300">
+                                        Members:
+                                        <span
+                                            class="font-normal text-slate-400"
+                                        >
+                                            {{
+                                                t.superstars
+                                                    ? t.superstars
+                                                          .map((s) => s.name)
+                                                          .join(', ')
+                                                    : 'No members'
+                                            }}
+                                        </span>
+                                    </p>
+                                    <div
+                                        class="mt-1 flex gap-3 border-t border-slate-800/40 pt-1.5 font-mono text-[9px] font-bold"
                                     >
-                                        <Trash class="h-3.5 w-3.5" />
-                                    </button>
-                                </div>
-                                <p class="text-[10px] text-slate-300">
-                                    Members:
-                                    <span
-                                        class="font-normal text-slate-400"
-                                    >
-                                        {{
-                                            t.superstars
-                                                ? t.superstars
-                                                      .map((s) => s.name)
-                                                      .join(', ')
-                                                : 'No members'
-                                        }}
-                                    </span>
-                                </p>
-                                <div
-                                    class="mt-1 flex gap-3 border-t border-slate-800/40 pt-1.5 font-mono text-[9px] font-bold"
-                                >
-                                    <span class="text-emerald-400"
-                                        >W: {{ t.wins }}</span
-                                    >
-                                    <span class="text-rose-400"
-                                        >L: {{ t.losses }}</span
-                                    >
-                                    <span class="text-slate-400"
-                                        >D: {{ t.draws }}</span
-                                    >
+                                        <span class="text-emerald-400"
+                                            >W: {{ t.wins }}</span
+                                        >
+                                        <span class="text-rose-400"
+                                            >L: {{ t.losses }}</span
+                                        >
+                                        <span class="text-slate-400"
+                                            >D: {{ t.draws }}</span
+                                        >
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <template #loading>
-                            <div
-                                class="animate-pulse py-2 text-center text-[10px] font-bold text-slate-400"
-                            >
-                                Loading more alignments...
-                            </div>
-                        </template>
+                            <template #loading>
+                                <div
+                                    class="animate-pulse py-2 text-center text-[10px] font-bold text-slate-400"
+                                >
+                                    Loading more alignments...
+                                </div>
+                            </template>
                         </InfiniteScroll>
                     </div>
                 </div>

@@ -40,8 +40,8 @@ const eligibleTeams = computed(() => {
 
     const showId = Number(championshipForm.show_id);
 
-    return props.teams.filter((t) =>
-        t.superstars && t.superstars.some((s) => s.show_id === showId)
+    return props.teams.filter(
+        (t) => t.superstars && t.superstars.some((s) => s.show_id === showId),
     );
 });
 
@@ -114,7 +114,7 @@ const deleteChampionship = (id: number) => {
             <h3
                 class="mb-4 flex items-center gap-2 text-sm font-bold text-white"
             >
-                <Trophy class="text-yellow-450 h-4 w-4" />
+                <Trophy class="h-4 w-4 text-yellow-450" />
                 {{
                     editChampionshipId
                         ? 'Modify Championship Profile'
@@ -161,7 +161,9 @@ const deleteChampionship = (id: number) => {
                             v-model="championshipForm.show_id"
                             class="w-full rounded-xl border border-slate-800 bg-slate-955 px-4 py-2.5 text-xs text-white focus:border-amber-400 focus:outline-none"
                         >
-                            <option value="">Independent (Any Show/Superstar)</option>
+                            <option value="">
+                                Independent (Any Show/Superstar)
+                            </option>
                             <option
                                 v-for="s in nonPleShows"
                                 :key="s.id"
@@ -184,9 +186,7 @@ const deleteChampionship = (id: number) => {
                         <option value="VACANT">
                             -- VACANT (No Holder Designated) --
                         </option>
-                        <template
-                            v-if="championshipForm.type === 'Singles'"
-                        >
+                        <template v-if="championshipForm.type === 'Singles'">
                             <option
                                 v-for="s in eligibleSuperstars"
                                 :key="s.id"
@@ -235,10 +235,9 @@ const deleteChampionship = (id: number) => {
             class="space-y-4"
             :class="isReadOnly ? 'lg:col-span-3' : 'lg:col-span-2'"
         >
-            <h3
-                class="flex items-center gap-2 text-sm font-bold text-white"
-            >
-                <Trophy class="text-slate-450 h-4 w-4" /> Active Championships Status
+            <h3 class="flex items-center gap-2 text-sm font-bold text-white">
+                <Trophy class="text-slate-450 h-4 w-4" /> Active Championships
+                Status
             </h3>
             <div
                 v-if="championships.length === 0"
@@ -282,9 +281,7 @@ const deleteChampionship = (id: number) => {
                             <p
                                 class="mt-1 flex items-center gap-1 text-xs font-bold text-white"
                             >
-                                <Sparkles
-                                    class="h-3.5 w-3.5 text-yellow-400"
-                                />
+                                <Sparkles class="h-3.5 w-3.5 text-yellow-400" />
                                 {{
                                     ch.type === 'Singles'
                                         ? ch.champion_superstar?.name ||

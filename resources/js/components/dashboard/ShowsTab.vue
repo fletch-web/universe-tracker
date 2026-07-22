@@ -136,10 +136,7 @@ function compressAndConvertImage(
                 <Plus class="h-4 w-4 text-amber-400" />
                 {{ editShowId ? 'Modify Show Profile' : 'Create New Show' }}
             </h3>
-            <form
-                @submit.prevent="handleCreateOrUpdateShow"
-                class="space-y-4"
-            >
+            <form @submit.prevent="handleCreateOrUpdateShow" class="space-y-4">
                 <div>
                     <label
                         class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase"
@@ -167,10 +164,13 @@ function compressAndConvertImage(
                     </div>
                     <div class="col-span-2">
                         <label
-                            class="mb-1 block text-[10px] font-bold tracking-wider text-slate-400 uppercase flex items-center justify-between"
+                            class="mb-1 block flex items-center justify-between text-[10px] font-bold tracking-wider text-slate-400 uppercase"
                         >
                             <span>Logo Graphic</span>
-                            <span v-if="!user.has_subscription" class="text-[9px] text-amber-500 font-medium flex items-center gap-0.5 uppercase tracking-normal">
+                            <span
+                                v-if="!user.has_subscription"
+                                class="flex items-center gap-0.5 text-[9px] font-medium tracking-normal text-amber-500 uppercase"
+                            >
                                 🔒 Subscription req.
                             </span>
                         </label>
@@ -180,10 +180,10 @@ function compressAndConvertImage(
                             accept="image/*"
                             :disabled="!user.has_subscription"
                             :class="[
-                                'w-full text-[10px] text-slate-400 file:mr-2 file:rounded-lg file:border-0 file:px-2.5 file:py-1.5 file:text-[10px] file:font-semibold transition-all',
+                                'w-full text-[10px] text-slate-400 transition-all file:mr-2 file:rounded-lg file:border-0 file:px-2.5 file:py-1.5 file:text-[10px] file:font-semibold',
                                 user.has_subscription
                                     ? 'cursor-pointer file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700'
-                                    : 'cursor-not-allowed opacity-50 file:bg-slate-900 file:text-slate-500'
+                                    : 'cursor-not-allowed opacity-50 file:bg-slate-900 file:text-slate-500',
                             ]"
                         />
                     </div>
@@ -206,8 +206,8 @@ function compressAndConvertImage(
                             Premium Live Event (PLE) Show
                         </label>
                         <span class="text-slate-505 text-[9px] font-medium">
-                            Bypasses brand roster limits to book any
-                            superstar & title.
+                            Bypasses brand roster limits to book any superstar &
+                            title.
                         </span>
                     </div>
                 </div>
@@ -226,9 +226,7 @@ function compressAndConvertImage(
                     >
                         <Tv class="h-4 w-4" />
                         {{
-                            editShowId
-                                ? 'Save Adjustments'
-                                : 'Initialize Show'
+                            editShowId ? 'Save Adjustments' : 'Initialize Show'
                         }}
                     </button>
                 </div>
@@ -240,11 +238,8 @@ function compressAndConvertImage(
             class="space-y-4"
             :class="isReadOnly ? 'lg:col-span-3' : 'lg:col-span-2'"
         >
-            <h3
-                class="flex items-center gap-2 text-sm font-bold text-white"
-            >
-                <Tv class="text-slate-450 h-4 w-4" /> Configured Brands /
-                Shows
+            <h3 class="flex items-center gap-2 text-sm font-bold text-white">
+                <Tv class="text-slate-450 h-4 w-4" /> Configured Brands / Shows
             </h3>
             <div
                 v-if="shows.length === 0"

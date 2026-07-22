@@ -952,6 +952,16 @@ it('allows booking tag team championship title matches for teams and updates cha
     $championship->refresh();
     expect($championship->champion_team_id)->toBe($team1->id);
 
+    $s1->refresh();
+    $s2->refresh();
+    $s3->refresh();
+    $s4->refresh();
+
+    expect($s1->wins)->toBe(1);
+    expect($s2->wins)->toBe(1);
+    expect($s3->losses)->toBe(1);
+    expect($s4->losses)->toBe(1);
+
     assertDatabaseHas('match_logs', [
         'division' => 'TagTeam',
         'c1_team_id' => $team1->id,
@@ -961,3 +971,36 @@ it('allows booking tag team championship title matches for teams and updates cha
     ]);
 });
 
+it('includes saved shows in the history array on the main dashboard tab', function () {
+    $show = Show::create(['name' => 'SmackDown', 'color' => '#0055ff', 'user_id' => $this->user->id]);
+    $s1 = Superstar::create(['name' => 'Cody Rhodes', 'gender' => 'Male', 'show_id' => $show->id, 'user_id' => $this->user->id]);
+    $s2 = Superstar::create(['name' => 'Roman Reigns', 'gender' => 'Male', 'show_id' => $show->id, 'user_id' => $this->user->id]);
+
+    actingAs($this->user)
+        ->post(route('booking.commit'), [
+            'show_id' => $show->id,
+            'date' => '2026-07-22',
+            'location' => 'MGM Grand',
+            'matches' => [
+                [
+                    'division' => 'Singles',
+                    'c1Id' => $s1->id,
+                    'c2Id' => $s2->id,
+                    'outcome' => 'Decisive',
+                    'winnerSlot' => '1',
+                    'winningId' => $s1->id,
+                ],
+            ],
+        ])
+        ->assertRedirect();
+
+    actingAs($this->user)
+        ->get(route('universe.public', ['username' => $this->user->username]))
+        ->assertOk()
+        ->assertInertia(function ($page) use ($show) {
+            $history = $page->toArray()['props']['history'];
+            expect($history)->not->toBeEmpty();
+            expect($history[0]['show']['id'])->toBe($show->id);
+            expect($history[0]['location'])->toBe('MGM Grand');
+        });
+});

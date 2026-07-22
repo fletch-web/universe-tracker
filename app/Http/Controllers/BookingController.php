@@ -289,6 +289,18 @@ class BookingController extends Controller
                     }
 
                     if ($outcome === 'Decisive') {
+                        if (! $winningId && $winnerSlot) {
+                            if ($winnerSlot === '1') {
+                                $winningId = $c1Id;
+                            } elseif ($winnerSlot === '2') {
+                                $winningId = $c2Id;
+                            } elseif ($winnerSlot === '3' && $t3) {
+                                $winningId = $t3->id;
+                            } elseif ($winnerSlot === '4' && $t4) {
+                                $winningId = $t4->id;
+                            }
+                        }
+
                         $matchLogData['winner_team_id'] = (int) $winningId;
                         $winner = Team::where('id', $winningId)->where('user_id', auth()->id())->first();
                         if (! $winner instanceof Team) {
@@ -300,8 +312,14 @@ class BookingController extends Controller
                         foreach ($participants as $p) {
                             if ($p->id === (int) $winningId) {
                                 $p->increment('wins');
+                                foreach ($p->superstars as $superstar) {
+                                    $superstar->increment('wins');
+                                }
                             } else {
                                 $p->increment('losses');
+                                foreach ($p->superstars as $superstar) {
+                                    $superstar->increment('losses');
+                                }
                             }
                         }
 
@@ -315,6 +333,9 @@ class BookingController extends Controller
                         // Increment draws for all
                         foreach ($participants as $p) {
                             $p->increment('draws');
+                            foreach ($p->superstars as $superstar) {
+                                $superstar->increment('draws');
+                            }
                         }
                     }
                 }

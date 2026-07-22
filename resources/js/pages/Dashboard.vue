@@ -18,7 +18,15 @@ import DashboardStats from '@/components/dashboard/DashboardStats.vue';
 import RosterTab from '@/components/dashboard/RosterTab.vue';
 import ShowsTab from '@/components/dashboard/ShowsTab.vue';
 import StorylinesTab from '@/components/dashboard/StorylinesTab.vue';
-import type { Show, Superstar, Team, Championship, Storyline, ShowLog, PaginatedData } from '@/types';
+import type {
+    Show,
+    Superstar,
+    Team,
+    Championship,
+    Storyline,
+    ShowLog,
+    PaginatedData,
+} from '@/types';
 
 withDefaults(
     defineProps<{
@@ -78,7 +86,13 @@ const handleClearData = () => {
 </script>
 
 <template>
-    <Head :title="owner ? owner.name + '\'s Universe - Universe Tracker' : 'Booking Deck - Universe Tracker'" />
+    <Head
+        :title="
+            owner
+                ? owner.name + '\'s Universe - Universe Tracker'
+                : 'Booking Deck - Universe Tracker'
+        "
+    />
 
     <div
         class="flex min-h-screen flex-col gap-6 bg-slate-950 p-6 font-sans text-slate-100"
@@ -244,6 +258,7 @@ const handleClearData = () => {
             v-if="currentTab === 'dashboard'"
             :shows="shows"
             :superstars="superstars"
+            :teams="teams"
             :championships="championships"
             :storylines="storylines"
             :history="history"

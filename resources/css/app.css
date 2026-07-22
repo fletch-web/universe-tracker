@@ -78,7 +78,7 @@
     --color-amber-400: #e5e7eb;
     --color-amber-500: #d1d5db;
     --color-amber-600: #9ca3af;
-    
+
     --color-yellow-300: #ffffff;
     --color-yellow-400: #e5e7eb;
     --color-yellow-450: #d1d5db;
@@ -203,9 +203,9 @@
 
 /* Custom Cardless Override: Remove all cards and use borderless divider sections */
 .bg-card,
-div[class*="bg-slate-900/60"],
-div[class*="bg-slate-950/60"],
-div[class*="bg-slate-900/40"] {
+div[class*='bg-slate-900/60'],
+div[class*='bg-slate-950/60'],
+div[class*='bg-slate-900/40'] {
     background: transparent !important;
     background-image: none !important;
     border: none !important;
@@ -220,15 +220,15 @@ div[class*="bg-slate-900/40"] {
 
 /* Disable Hover transitions since card shapes are removed */
 .bg-card:hover,
-div[class*="bg-slate-900/60"]:hover,
-div[class*="bg-slate-950/60"]:hover {
+div[class*='bg-slate-900/60']:hover,
+div[class*='bg-slate-950/60']:hover {
     transform: none !important;
     box-shadow: none !important;
     border-color: rgba(229, 231, 235, 0.12) !important;
 }
 
 /* Dashboard Tab Bar Navigation Card Override (Flat Borderless Tab Header) */
-div[class*="bg-slate-900/40"] {
+div[class*='bg-slate-900/40'] {
     border-bottom: 2px solid rgba(169, 110, 245, 0.35) !important; /* Silver-purple separator underline */
     margin-bottom: 1.75rem;
     padding-bottom: 1.25rem !important;

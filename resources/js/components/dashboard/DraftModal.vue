@@ -36,8 +36,8 @@ const draftLogs = ref<string[]>([]);
 
 const excludedChampionIds = computed(() => {
     if (!props.championships) {
-return [];
-}
+        return [];
+    }
 
     const ids = new Set<number>();
     props.championships.forEach((ch) => {
@@ -45,7 +45,9 @@ return [];
             if (ch.type === 'Singles' && ch.champion_superstar_id) {
                 ids.add(ch.champion_superstar_id);
             } else if (ch.type === 'TagTeam' && ch.champion_team_id) {
-                const team = props.teams.find((t) => t.id === ch.champion_team_id);
+                const team = props.teams.find(
+                    (t) => t.id === ch.champion_team_id,
+                );
 
                 if (team && team.superstars) {
                     team.superstars.forEach((s) => ids.add(s.id));
@@ -277,7 +279,7 @@ const handleSaveDraft = () => {
         >
             <!-- Modal Header -->
             <div
-                class="bg-slate-950/50 flex items-center justify-between border-b border-slate-800 p-5"
+                class="flex items-center justify-between border-b border-slate-800 bg-slate-950/50 p-5"
             >
                 <div class="flex items-center gap-2">
                     <div
@@ -333,9 +335,10 @@ const handleSaveDraft = () => {
                                 ]"
                                 @click="
                                     draftSelectedShows.includes(show.id)
-                                        ? (draftSelectedShows = draftSelectedShows.filter(
-                                              (id) => id !== show.id,
-                                          ))
+                                        ? (draftSelectedShows =
+                                              draftSelectedShows.filter(
+                                                  (id) => id !== show.id,
+                                              ))
                                         : draftSelectedShows.push(show.id)
                                 "
                             >
@@ -364,7 +367,12 @@ const handleSaveDraft = () => {
                                 <button
                                     @click="
                                         draftEligibleSuperstars = superstars
-                                            .filter((s) => !excludedChampionIds.includes(s.id))
+                                            .filter(
+                                                (s) =>
+                                                    !excludedChampionIds.includes(
+                                                        s.id,
+                                                    ),
+                                            )
                                             .map((s) => s.id)
                                     "
                                     class="text-[9px] font-bold text-amber-400 uppercase hover:underline"
@@ -381,7 +389,10 @@ const handleSaveDraft = () => {
                             </div>
                         </div>
                         <p class="text-[10px] text-slate-400">
-                            Only selected superstars (and their factions) will enter the draft pool. Champions assigned to a show are excluded from the draft pool and locked to their respective shows.
+                            Only selected superstars (and their factions) will
+                            enter the draft pool. Champions assigned to a show
+                            are excluded from the draft pool and locked to their
+                            respective shows.
                         </p>
 
                         <div
@@ -393,17 +404,18 @@ const handleSaveDraft = () => {
                                 class="flex items-center gap-2 rounded-lg border p-2 transition-all"
                                 :class="[
                                     excludedChampionIds.includes(s.id)
-                                        ? 'border-slate-800 bg-slate-900/30 opacity-50 cursor-not-allowed'
+                                        ? 'cursor-not-allowed border-slate-800 bg-slate-900/30 opacity-50'
                                         : draftEligibleSuperstars.includes(s.id)
-                                            ? 'border-amber-400/60 bg-amber-400/5 cursor-pointer'
-                                            : 'border-slate-800 bg-slate-955/20 hover:border-slate-800 cursor-pointer',
+                                          ? 'cursor-pointer border-amber-400/60 bg-amber-400/5'
+                                          : 'cursor-pointer border-slate-800 bg-slate-955/20 hover:border-slate-800',
                                 ]"
                                 @click="
                                     !excludedChampionIds.includes(s.id) &&
                                     (draftEligibleSuperstars.includes(s.id)
-                                        ? (draftEligibleSuperstars = draftEligibleSuperstars.filter(
-                                              (id) => id !== s.id,
-                                          ))
+                                        ? (draftEligibleSuperstars =
+                                              draftEligibleSuperstars.filter(
+                                                  (id) => id !== s.id,
+                                              ))
                                         : draftEligibleSuperstars.push(s.id))
                                 "
                             >
@@ -417,12 +429,12 @@ const handleSaveDraft = () => {
                                     }"
                                 />
                                 <span
-                                    class="text-slate-350 truncate text-[10px] font-bold flex-1"
+                                    class="text-slate-350 flex-1 truncate text-[10px] font-bold"
                                     >{{ s.name }}</span
                                 >
                                 <span
                                     v-if="excludedChampionIds.includes(s.id)"
-                                    class="text-[8px] font-bold text-amber-500 uppercase tracking-wide"
+                                    class="text-[8px] font-bold tracking-wide text-amber-500 uppercase"
                                     >🏆 Locked</span
                                 >
                             </div>
@@ -464,7 +476,9 @@ const handleSaveDraft = () => {
                             <p
                                 class="text-[10px] leading-relaxed text-slate-400"
                             >
-                                Shows take turns in a round-robin rotation. You manually choose which superstar or faction gets drafted to the active show. Highly strategic.
+                                Shows take turns in a round-robin rotation. You
+                                manually choose which superstar or faction gets
+                                drafted to the active show. Highly strategic.
                             </p>
                         </div>
 
@@ -492,7 +506,9 @@ const handleSaveDraft = () => {
                             <p
                                 class="text-[10px] leading-relaxed text-slate-400"
                             >
-                                Draft engine distributes all eligible candidates and factions randomly and evenly across all selected shows in one click. Instant results.
+                                Draft engine distributes all eligible candidates
+                                and factions randomly and evenly across all
+                                selected shows in one click. Instant results.
                             </p>
                         </div>
                     </div>
@@ -580,7 +596,7 @@ const handleSaveDraft = () => {
                                         :class="[
                                             item.type === 'faction'
                                                 ? 'border border-amber-400/20 bg-amber-400/10 text-amber-400'
-                                                : 'text-slate-350 border border-slate-700 bg-slate-850',
+                                                : 'text-slate-350 bg-slate-850 border border-slate-700',
                                         ]"
                                     >
                                         {{ item.type }}
@@ -590,9 +606,7 @@ const handleSaveDraft = () => {
                                     >
                                         {{ item.name }}
                                     </h5>
-                                    <p
-                                        class="mt-1 text-[9px] text-slate-550"
-                                    >
+                                    <p class="text-slate-550 mt-1 text-[9px]">
                                         {{
                                             item.type === 'faction'
                                                 ? 'Members:'
@@ -642,7 +656,8 @@ const handleSaveDraft = () => {
                                 Draft Completed successfully!
                             </h4>
                             <p class="text-[10px] text-slate-400">
-                                Review results and confirm to update roster metrics.
+                                Review results and confirm to update roster
+                                metrics.
                             </p>
                         </div>
                     </div>
@@ -669,8 +684,7 @@ const handleSaveDraft = () => {
                                     class="text-xs font-bold tracking-wider text-white uppercase"
                                 >
                                     {{
-                                        shows.find((s) => s.id === showId)
-                                            ?.name
+                                        shows.find((s) => s.id === showId)?.name
                                     }}
                                 </h4>
                             </div>
@@ -679,8 +693,7 @@ const handleSaveDraft = () => {
                             >
                                 <div
                                     v-for="s in superstars.filter(
-                                        (s) =>
-                                            draftResults[s.id] === showId,
+                                        (s) => draftResults[s.id] === showId,
                                     )"
                                     :key="s.id"
                                     class="border-slate-850 flex items-center gap-2 rounded-lg border bg-slate-900/60 px-2 py-1.5"
@@ -698,8 +711,7 @@ const handleSaveDraft = () => {
                                     v-if="
                                         superstars.filter(
                                             (s) =>
-                                                draftResults[s.id] ===
-                                                showId,
+                                                draftResults[s.id] === showId,
                                         ).length === 0
                                     "
                                     class="py-4 text-center text-[10px] text-slate-600"
@@ -718,7 +730,7 @@ const handleSaveDraft = () => {
                             Draft Log Feed
                         </h4>
                         <div
-                            class="border-slate-850 bg-slate-950 max-h-[130px] space-y-1 overflow-y-auto rounded-xl border p-3.5 font-mono text-[9px]"
+                            class="border-slate-850 max-h-[130px] space-y-1 overflow-y-auto rounded-xl border bg-slate-950 p-3.5 font-mono text-[9px]"
                         >
                             <p
                                 v-for="(log, idx) in draftLogs"
@@ -737,7 +749,7 @@ const handleSaveDraft = () => {
 
             <!-- Modal Footer -->
             <div
-                class="bg-slate-950/50 flex justify-between gap-3 border-t border-slate-800 p-5"
+                class="flex justify-between gap-3 border-t border-slate-800 bg-slate-950/50 p-5"
             >
                 <button
                     v-if="draftStage > 1 && draftStage < 4"
@@ -778,7 +790,7 @@ const handleSaveDraft = () => {
                     <button
                         v-if="draftStage === 4"
                         @click="handleSaveDraft"
-                        class="bg-emerald-500 cursor-pointer rounded-xl border border-emerald-500/20 px-5 py-2.5 text-xs font-bold text-white transition hover:bg-emerald-400"
+                        class="cursor-pointer rounded-xl border border-emerald-500/20 bg-emerald-500 px-5 py-2.5 text-xs font-bold text-white transition hover:bg-emerald-400"
                     >
                         Confirm & Save Draft
                     </button>
