@@ -1048,3 +1048,45 @@ it('allows booking shows in the future and updates superstar match records and i
             expect($history[0]['location'])->toBe('MetLife Stadium');
         });
 });
+
+it('accepts integer championshipId and storylineId values when committing show bookings', function () {
+    $show = Show::create(['name' => 'SmackDown', 'color' => '#0055ff', 'user_id' => $this->user->id]);
+    $s1 = Superstar::create(['name' => 'Cody Rhodes', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0, 'user_id' => $this->user->id]);
+    $s2 = Superstar::create(['name' => 'Roman Reigns', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0, 'user_id' => $this->user->id]);
+
+    $championship = Championship::create([
+        'name' => 'Undisputed Title',
+        'show_id' => $show->id,
+        'type' => 'Singles',
+        'champion_superstar_id' => $s2->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    $storyline = Storyline::create([
+        'name' => 'Bloodline Rules',
+        'user_id' => $this->user->id,
+    ]);
+
+    actingAs($this->user)
+        ->post(route('booking.commit'), [
+            'show_id' => $show->id,
+            'date' => '2026-07-22',
+            'matches' => [
+                [
+                    'division' => 'Singles',
+                    'c1Id' => $s1->id,
+                    'c2Id' => $s2->id,
+                    'outcome' => 'Decisive',
+                    'winnerSlot' => '1',
+                    'winningId' => $s1->id,
+                    'championshipId' => $championship->id, // Passed as integer
+                    'storylineId' => $storyline->id, // Passed as integer
+                ],
+            ],
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect();
+
+    $championship->refresh();
+    expect($championship->champion_superstar_id)->toBe($s1->id);
+});

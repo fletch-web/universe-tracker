@@ -39,8 +39,8 @@ class BookingController extends Controller
             'matches.*.outcome' => 'required_unless:matches.*.division,Segment|nullable|string|in:Decisive,Draw',
             'matches.*.winnerSlot' => 'nullable|string|in:1,2,3,4',
             'matches.*.winningId' => 'nullable',
-            'matches.*.storylineId' => 'nullable|string',
-            'matches.*.championshipId' => 'nullable|string',
+            'matches.*.storylineId' => 'nullable',
+            'matches.*.championshipId' => 'nullable',
             'matches.*.notes' => 'nullable|string',
             'matches.*.stipulation' => 'nullable|string|max:255',
         ]);
