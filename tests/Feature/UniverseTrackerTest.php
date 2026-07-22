@@ -1004,3 +1004,47 @@ it('includes saved shows in the history array on the main dashboard tab', functi
             expect($history[0]['location'])->toBe('MGM Grand');
         });
 });
+
+it('allows booking shows in the future and updates superstar match records and includes them in history ordered by show date', function () {
+    $show = Show::create(['name' => 'WrestleMania Future', 'color' => '#ffaa00', 'is_ple' => true, 'user_id' => $this->user->id]);
+    $s1 = Superstar::create(['name' => 'Future Champ', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0, 'user_id' => $this->user->id]);
+    $s2 = Superstar::create(['name' => 'Future Challenger', 'gender' => 'Male', 'show_id' => $show->id, 'wins' => 0, 'losses' => 0, 'draws' => 0, 'user_id' => $this->user->id]);
+
+    $futureDate = '2030-12-31';
+
+    actingAs($this->user)
+        ->post(route('booking.commit'), [
+            'show_id' => $show->id,
+            'date' => $futureDate,
+            'location' => 'MetLife Stadium',
+            'matches' => [
+                [
+                    'division' => 'Singles',
+                    'c1Id' => $s1->id,
+                    'c2Id' => $s2->id,
+                    'outcome' => 'Decisive',
+                    'winnerSlot' => '1',
+                    'winningId' => $s1->id,
+                    'notes' => 'Main event in 2030',
+                ],
+            ],
+        ])
+        ->assertRedirect();
+
+    $s1->refresh();
+    $s2->refresh();
+
+    expect($s1->wins)->toBe(1);
+    expect($s2->losses)->toBe(1);
+
+    actingAs($this->user)
+        ->get(route('universe.public', ['username' => $this->user->username]))
+        ->assertOk()
+        ->assertInertia(function ($page) use ($show, $futureDate) {
+            $history = $page->toArray()['props']['history'];
+            expect($history)->not->toBeEmpty();
+            expect($history[0]['date'])->toBe($futureDate);
+            expect($history[0]['show']['id'])->toBe($show->id);
+            expect($history[0]['location'])->toBe('MetLife Stadium');
+        });
+});

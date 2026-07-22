@@ -47,7 +47,7 @@ class PublicUniverseController extends Controller
                 'matches.winnerTeam',
                 'matches.storyline',
                 'matches.championship',
-            ])->latest()->get(),
+            ])->orderBy('date', 'desc')->orderBy('created_at', 'desc')->get(),
             'isReadOnly' => ! auth()->check() || auth()->user()->id !== $userId,
             'owner' => [
                 'name' => $user->name,
