@@ -1090,3 +1090,28 @@ it('accepts integer championshipId and storylineId values when committing show b
     $championship->refresh();
     expect($championship->champion_superstar_id)->toBe($s1->id);
 });
+
+it('accepts Segment as an outcome value when committing promo/vignette segments', function () {
+    $show = Show::create(['name' => 'Raw', 'color' => '#ff0000', 'user_id' => $this->user->id]);
+
+    actingAs($this->user)
+        ->post(route('booking.commit'), [
+            'show_id' => $show->id,
+            'date' => '2026-07-22',
+            'matches' => [
+                [
+                    'division' => 'Segment',
+                    'outcome' => 'Segment',
+                    'notes' => 'Backstage confrontation promo',
+                ],
+            ],
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect();
+
+    assertDatabaseHas('match_logs', [
+        'division' => 'Segment',
+        'outcome' => 'Segment',
+        'notes' => 'Backstage confrontation promo',
+    ]);
+});
